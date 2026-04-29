@@ -1,0 +1,12 @@
+.pgeservicos-area-page .pgeservicos-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.pgeservicos-area-page .pgeservicos-card p strong {
+  color: var(--pgeservicos-text);
+}
+
+.pgeservicos-area-page .pgeservicos-card a {
+  margin-top: auto;
+}

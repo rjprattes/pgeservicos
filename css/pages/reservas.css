@@ -1,0 +1,48 @@
+.pgeservicos-reservas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  margin-top: 18px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.pgeservicos-reservas-header .pgeservicos-section-title {
+  margin-top: 0;
+}
+
+.pgeservicos-reservas-page .pgeservicos-reservas-main-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border: 1px solid var(--pgeservicos-primary);
+  border-radius: 8px;
+  background: var(--pgeservicos-primary);
+  box-shadow: 0 4px 12px rgba(var(--pgeservicos-primary-rgb), 0.25);
+  color: var(--pgeservicos-on-primary) !important;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.pgeservicos-reservas-page .pgeservicos-reservas-main-btn:hover,
+.pgeservicos-reservas-page .pgeservicos-reservas-main-btn:focus {
+  border-color: var(--pgeservicos-primary);
+  background: rgba(var(--pgeservicos-primary-rgb), 0.86);
+  color: var(--pgeservicos-on-primary) !important;
+  text-decoration: none;
+}
+
+.pgeservicos-reserva-card p strong {
+  color: var(--pgeservicos-text);
+}
+
+.pgeservicos-reserva-card a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

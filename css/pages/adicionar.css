@@ -1,0 +1,285 @@
+.pgegestor-page {
+  --pgeservicos-primary: var(--tblr-primary, #2f7ecb);
+  --pgeservicos-primary-rgb: var(--tblr-primary-rgb, 47, 126, 203);
+  --pgeservicos-primary-soft: rgba(var(--pgeservicos-primary-rgb), 0.12);
+  --pgeservicos-surface: var(--tblr-card-bg, #fff);
+  --pgeservicos-text: var(--tblr-body-color, #212529);
+  --pgeservicos-muted: var(--tblr-body-color, #6c757d);
+  --pgeservicos-border: var(--tblr-border-color, #dce1e7);
+  --pgeservicos-border-light: var(--tblr-border-color-light, #f8f9fa);
+  --pgeservicos-accent-text: var(--pgeservicos-primary);
+  max-width: 950px;
+  margin: 25px auto;
+  padding: 0 12px;
+}
+
+.pgegestor-card {
+  background: var(--pgeservicos-surface);
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 8px;
+  padding: 22px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+}
+
+.pgegestor-card h1 {
+  margin-top: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.pgegestor-muted {
+  color: var(--pgeservicos-muted);
+  margin-bottom: 18px;
+}
+
+.pgegestor-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.pgegestor-title-participants-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 4fr 1fr;
+  gap: 16px;
+}
+
+.pgegestor-form-group {
+  margin-bottom: 16px;
+}
+
+.pgegestor-form-group.full {
+  grid-column: 1 / -1;
+}
+
+.pgegestor-title-participants-row .pgegestor-form-group {
+  margin-bottom: 16px;
+}
+
+.pgegestor-form-group label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.pgegestor-item-capacity-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 190px;
+  gap: 12px;
+  align-items: end;
+}
+
+.pgegestor-item-field,
+.pgegestor-capacity-field {
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.pgegestor-required {
+  color: #dc3545;
+}
+
+.pgegestor-checkboxes {
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 8px;
+  padding: 14px;
+  background: var(--pgeservicos-border-light);
+}
+
+.pgegestor-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-weight: 600;
+}
+
+.pgegestor-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.pgegestor-alert {
+  padding: 12px 14px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  border: 1px solid #f5c2c7;
+  background: #f8d7da;
+  color: #842029;
+}
+
+.pgegestor-warning {
+  padding: 12px 14px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  border: 1px solid #ffecb5;
+  background: #fff3cd;
+  color: #664d03;
+}
+
+.pgegestor-actions-left {
+  margin-right: auto;
+}
+
+.pgegestor-ticket-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pgegestor-ticket-links a {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px solid rgba(var(--pgeservicos-primary-rgb), 0.3);
+  border-radius: 8px;
+  background: var(--pgeservicos-primary-soft);
+  color: var(--pgeservicos-accent-text);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.pgegestor-ticket-links a:hover {
+  background: rgba(var(--pgeservicos-primary-rgb), 0.18);
+  color: var(--pgeservicos-accent-text);
+  text-decoration: none;
+}
+
+.pgegestor-confirm-open {
+  overflow: hidden;
+}
+
+.pgegestor-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1060;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: rgba(15, 23, 42, 0.42);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+.pgegestor-confirm-overlay.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pgegestor-confirm-card {
+  position: relative;
+  width: min(440px, 100%);
+  padding: 24px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 8px;
+  background: var(--pgeservicos-surface);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.22);
+  opacity: 0;
+  transform: translateY(-18px);
+  transition:
+    opacity 0.18s ease,
+    transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.pgegestor-confirm-overlay.is-visible .pgegestor-confirm-card {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.pgegestor-confirm-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--pgeservicos-muted);
+  cursor: pointer;
+}
+
+.pgegestor-confirm-close:hover,
+.pgegestor-confirm-close:focus {
+  background: var(--pgeservicos-primary-soft);
+  color: var(--pgeservicos-accent-text);
+}
+
+.pgegestor-confirm-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  margin-bottom: 14px;
+  border-radius: 8px;
+  background: #f8d7da;
+  color: #842029;
+  font-size: 24px;
+}
+
+.pgegestor-confirm-card h2 {
+  margin: 0 36px 10px 0;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.pgegestor-confirm-card p {
+  margin: 0;
+  color: var(--pgeservicos-muted);
+  line-height: 1.5;
+}
+
+.pgegestor-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pgegestor-confirm-overlay,
+  .pgegestor-confirm-card {
+    transition: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .pgegestor-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pgegestor-title-participants-row {
+    grid-template-columns: 1fr;
+  }
+
+  .pgegestor-item-capacity-row {
+    grid-template-columns: 1fr;
+  }
+
+  .pgegestor-actions {
+    flex-direction: column;
+  }
+
+  .pgegestor-actions-left {
+    margin-right: 0;
+  }
+
+  .pgegestor-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .pgegestor-confirm-actions .btn {
+    width: 100%;
+  }
+}

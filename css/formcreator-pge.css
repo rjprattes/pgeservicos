@@ -1,0 +1,501 @@
+body.pgeservicos-formcreator-page {
+  --pgeservicos-fc-primary: var(--tblr-primary, #2f7ecb);
+  --pgeservicos-fc-primary-rgb: var(--tblr-primary-rgb, 47, 126, 203);
+  --pgeservicos-fc-primary-soft: rgba(var(--pgeservicos-fc-primary-rgb), 0.12);
+  --pgeservicos-fc-primary-softer: rgba(
+    var(--pgeservicos-fc-primary-rgb),
+    0.07
+  );
+  --pgeservicos-fc-surface: var(--tblr-card-bg, #fff);
+  --pgeservicos-fc-bg: var(--tblr-body-bg, #f5f7fb);
+  --pgeservicos-fc-text: var(--tblr-body-color, #1f2937);
+  --pgeservicos-fc-muted: var(--tblr-body-color, #5f6b7a);
+  --pgeservicos-fc-border: var(--tblr-border-color, #e5e7eb);
+  --pgeservicos-fc-border-light: var(--tblr-border-color-light, #f2f3f4);
+  --pgeservicos-fc-on-primary: var(--tblr-btn-color-text, #fff);
+}
+
+body.pgeservicos-formcreator-page #page,
+body.pgeservicos-formcreator-page main {
+  background: var(--pgeservicos-fc-bg);
+}
+
+body.pgeservicos-formcreator-page .pgeservicos-formcreator-shell {
+  width: min(1180px, calc(100vw - 32px));
+  margin: 24px auto 48px;
+}
+
+body.pgeservicos-formcreator-page .pgeservicos-formcreator-header {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding: 26px 28px;
+  border-radius: 16px;
+  background: linear-gradient(
+    135deg,
+    var(--pgeservicos-fc-primary),
+    rgba(var(--pgeservicos-fc-primary-rgb), 0.78)
+  );
+  color: var(--pgeservicos-fc-on-primary);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
+}
+
+body.pgeservicos-formcreator-page .pgeservicos-formcreator-back {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 8px;
+  color: var(--pgeservicos-fc-on-primary);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+body.pgeservicos-formcreator-page .pgeservicos-formcreator-back:hover,
+body.pgeservicos-formcreator-page .pgeservicos-formcreator-back:focus {
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--pgeservicos-fc-on-primary);
+  text-decoration: none;
+}
+
+body.pgeservicos-formcreator-page .pgeservicos-formcreator-header h1 {
+  margin: 0;
+  color: var(--pgeservicos-fc-on-primary);
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+body.pgeservicos-formcreator-page .pgeservicos-formcreator-header p {
+  max-width: 780px;
+  margin: 0;
+  color: var(--pgeservicos-fc-on-primary);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+body.pgeservicos-formcreator-page .pgeservicos-formcreator-card {
+  padding: 26px;
+  border: 1px solid var(--pgeservicos-fc-border);
+  border-radius: 14px;
+  background: var(--pgeservicos-fc-surface);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form {
+  max-width: none;
+  margin: 0;
+  color: var(--pgeservicos-fc-text);
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  > .form-title.pgeservicos-formcreator-original-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form .form_header {
+  margin: 0 0 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--pgeservicos-fc-border);
+  border-radius: 10px;
+  background: var(--pgeservicos-fc-primary-softer);
+  color: var(--pgeservicos-fc-text);
+  line-height: 1.55;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form > ol {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .plugin_formcreator_section {
+  overflow: hidden;
+  margin: 0;
+  border: 1px solid var(--pgeservicos-fc-border);
+  border-radius: 12px;
+  background: var(--pgeservicos-fc-surface);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .plugin_formcreator_section
+  > .card-header {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--pgeservicos-fc-border);
+  background: var(--pgeservicos-fc-border-light);
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .plugin_formcreator_section
+  .card-title,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .plugin_formcreator_section
+  h2 {
+  margin: 0;
+  color: var(--pgeservicos-fc-text);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .plugin_formcreator_section
+  > .card-body {
+  display: block;
+  padding: 18px;
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  [data-itemtype="PluginFormcreatorQuestion"] {
+  display: inline-block;
+  box-sizing: border-box;
+  vertical-align: top;
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid var(--pgeservicos-fc-border);
+  border-radius: 10px;
+  background: var(--pgeservicos-fc-surface);
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .plugin_formcreator_gap {
+  display: inline-block;
+  box-sizing: border-box;
+  vertical-align: top;
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .plugin_formcreator_newRow {
+  display: block;
+  clear: both;
+  width: 100%;
+  height: 0;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form .form_field,
+body.pgeservicos-formcreator-page #plugin_formcreator_form .form-group,
+body.pgeservicos-formcreator-page #plugin_formcreator_form .mb-3 {
+  color: var(--pgeservicos-fc-text);
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form label {
+  color: var(--pgeservicos-fc-text);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form .required,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .plugin_formcreator_required,
+body.pgeservicos-formcreator-page #plugin_formcreator_form label .red {
+  color: var(--tblr-danger, #d63939);
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="text"],
+body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="email"],
+body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="number"],
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  input[type="password"],
+body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="search"],
+body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="url"],
+body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="date"],
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  input[type="datetime-local"],
+body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="time"],
+body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="file"],
+body.pgeservicos-formcreator-page #plugin_formcreator_form select,
+body.pgeservicos-formcreator-page #plugin_formcreator_form textarea,
+body.pgeservicos-formcreator-page #plugin_formcreator_form .select2-selection {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--pgeservicos-fc-border);
+  border-radius: 8px;
+  background-color: var(--pgeservicos-fc-surface);
+  color: var(--pgeservicos-fc-text);
+  box-shadow: none;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form .input-group,
+body.pgeservicos-formcreator-page #plugin_formcreator_form .btn-group {
+  max-width: 100%;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form .select2-container {
+  max-width: 100% !important;
+  min-width: 0;
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .pgeservicos-formcreator-select-with-action
+  .select2-container {
+  max-width: calc(100% - 42px) !important;
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .input-group
+  > .select2-container {
+  flex: 1 1 auto;
+  width: auto !important;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form .input-group > .btn,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .input-group
+  > button {
+  flex: 0 0 auto;
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .select2-selection__rendered,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .select2-selection__choice,
+body.pgeservicos-formcreator-page #plugin_formcreator_form option {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form input:focus,
+body.pgeservicos-formcreator-page #plugin_formcreator_form select:focus,
+body.pgeservicos-formcreator-page #plugin_formcreator_form textarea:focus,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .select2-container--focus
+  .select2-selection,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .select2-container--open
+  .select2-selection {
+  border-color: var(--pgeservicos-fc-primary);
+  box-shadow: 0 0 0 3px rgba(var(--pgeservicos-fc-primary-rgb), 0.16);
+  outline: none;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form input:invalid,
+body.pgeservicos-formcreator-page #plugin_formcreator_form select:invalid,
+body.pgeservicos-formcreator-page #plugin_formcreator_form textarea:invalid,
+body.pgeservicos-formcreator-page #plugin_formcreator_form .is-invalid {
+  border-color: var(--tblr-danger, #d63939);
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  input[type="checkbox"],
+body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--pgeservicos-fc-primary);
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  input[type="checkbox"]
+  + label,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  input[type="radio"]
+  + label {
+  font-weight: 600;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form table {
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--pgeservicos-fc-border);
+  border-radius: 10px;
+  background: var(--pgeservicos-fc-surface);
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form th {
+  background: var(--pgeservicos-fc-border-light);
+  color: var(--pgeservicos-fc-text);
+  font-weight: 800;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form td,
+body.pgeservicos-formcreator-page #plugin_formcreator_form th {
+  border-color: var(--pgeservicos-fc-border);
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form .alert,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .message_after_redirect,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .pgeservicos-formcreator-message {
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form .center {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 22px;
+  flex-wrap: wrap;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="submit"],
+body.pgeservicos-formcreator-page #plugin_formcreator_form .btn-primary,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .pgeservicos-formcreator-primary-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid var(--pgeservicos-fc-primary);
+  border-radius: 8px;
+  background: var(--pgeservicos-fc-primary);
+  color: var(--pgeservicos-fc-on-primary) !important;
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  input[type="submit"]:hover,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  input[type="submit"]:focus,
+body.pgeservicos-formcreator-page #plugin_formcreator_form .btn-primary:hover,
+body.pgeservicos-formcreator-page #plugin_formcreator_form .btn-primary:focus,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .pgeservicos-formcreator-primary-action:hover,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .pgeservicos-formcreator-primary-action:focus {
+  background: rgba(var(--pgeservicos-fc-primary-rgb), 0.86);
+  color: var(--pgeservicos-fc-on-primary) !important;
+  text-decoration: none;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form .btn-secondary,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .btn-outline-secondary,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  input[type="button"] {
+  border-color: var(--pgeservicos-fc-border);
+  background: var(--pgeservicos-fc-surface);
+  color: var(--pgeservicos-fc-text) !important;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form .tox button,
+body.pgeservicos-formcreator-page #plugin_formcreator_form .tox .tox-tbtn,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .tox
+  .tox-split-button {
+  min-height: unset;
+  padding: 0;
+  border-color: transparent;
+  border-radius: 3px;
+  background: transparent;
+  box-shadow: none;
+  color: inherit !important;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+body.pgeservicos-formcreator-page #plugin_formcreator_form .tox .tox-tbtn:hover,
+body.pgeservicos-formcreator-page #plugin_formcreator_form .tox .tox-tbtn:focus,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .tox
+  .tox-split-button:hover,
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .tox
+  .tox-split-button:focus {
+  background: rgba(var(--pgeservicos-fc-primary-rgb), 0.08);
+  color: inherit !important;
+}
+
+body.pgeservicos-formcreator-page
+  #plugin_formcreator_form
+  .pgeservicos-formcreator-focused {
+  border-color: rgba(var(--pgeservicos-fc-primary-rgb), 0.42);
+  box-shadow: 0 0 0 3px rgba(var(--pgeservicos-fc-primary-rgb), 0.08);
+}
+
+@media (max-width: 800px) {
+  body.pgeservicos-formcreator-page .pgeservicos-formcreator-shell {
+    width: min(100% - 20px, 100%);
+    margin-top: 12px;
+  }
+
+  body.pgeservicos-formcreator-page .pgeservicos-formcreator-header,
+  body.pgeservicos-formcreator-page .pgeservicos-formcreator-card {
+    padding: 18px;
+  }
+
+  body.pgeservicos-formcreator-page .pgeservicos-formcreator-header h1 {
+    font-size: 23px;
+  }
+
+  body.pgeservicos-formcreator-page
+    #plugin_formcreator_form
+    .plugin_formcreator_section
+    > .card-body {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  body.pgeservicos-formcreator-page
+    #plugin_formcreator_form
+    [data-itemtype="PluginFormcreatorQuestion"],
+  body.pgeservicos-formcreator-page
+    #plugin_formcreator_form
+    .plugin_formcreator_gap {
+    width: 100% !important;
+    min-width: 100% !important;
+    margin-left: 0 !important;
+  }
+}

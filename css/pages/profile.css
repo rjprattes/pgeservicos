@@ -1,0 +1,64 @@
+.pgegestor-profile-box {
+  max-width: 1050px;
+  margin: 20px auto;
+  padding: 18px;
+  border: 1px solid #dce1e7;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+}
+
+.pgegestor-profile-box h2 {
+  margin-top: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.pgegestor-profile-muted {
+  margin-bottom: 18px;
+  color: #6c757d;
+}
+
+.pgegestor-rights-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pgegestor-rights-table th {
+  padding: 10px;
+  border-bottom: 1px solid #dee2e6;
+  background: #f8f9fa;
+  font-weight: 700;
+  text-align: left;
+}
+
+.pgegestor-rights-table td {
+  padding: 10px;
+  border-bottom: 1px solid #dee2e6;
+  vertical-align: middle;
+}
+
+.pgegestor-rights-table tr:last-child td {
+  border-bottom: none;
+}
+
+.pgegestor-right-label {
+  font-weight: 700;
+}
+
+.pgegestor-right-description {
+  margin-top: 3px;
+  color: #6c757d;
+  font-size: 12px;
+}
+
+.pgegestor-profile-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 18px;
+}
+
+.pgegestor-check-cell {
+  width: 130px;
+  text-align: center;
+}

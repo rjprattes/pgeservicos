@@ -1,0 +1,188 @@
+.pgeservicos-container {
+  --pgeservicos-primary: var(--tblr-primary, #2f7ecb);
+  --pgeservicos-primary-rgb: var(--tblr-primary-rgb, 47, 126, 203);
+  --pgeservicos-primary-soft: rgba(var(--pgeservicos-primary-rgb), 0.12);
+  --pgeservicos-primary-softer: rgba(var(--pgeservicos-primary-rgb), 0.07);
+  --pgeservicos-surface: var(--tblr-card-bg, #fff);
+  --pgeservicos-surface-rgb: var(--tblr-card-bg-rgb, 255, 255, 255);
+  --pgeservicos-bg: var(--tblr-body-bg, #f5f7fb);
+  --pgeservicos-text: var(--tblr-body-color, #1f2937);
+  --pgeservicos-heading: var(--tblr-body-color, #111827);
+  --pgeservicos-muted: var(--tblr-body-color, #5f6b7a);
+  --pgeservicos-border: var(--tblr-border-color, #e5e7eb);
+  --pgeservicos-border-light: var(--tblr-border-color-light, #f2f3f4);
+  --pgeservicos-on-primary: var(--tblr-btn-color-text, #fff);
+  --pgeservicos-accent-text: var(--pgeservicos-primary);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 28px 24px 48px;
+}
+
+.pgeservicos-hero {
+  background: linear-gradient(
+    135deg,
+    var(--pgeservicos-primary),
+    rgba(var(--pgeservicos-primary-rgb), 0.78)
+  );
+  color: var(--pgeservicos-on-primary);
+  padding: 34px;
+  border-radius: 16px;
+  margin-bottom: 28px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
+}
+
+.pgeservicos-hero h1 {
+  margin: 0 0 12px;
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.pgeservicos-hero p {
+  max-width: 920px;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.pgeservicos-section-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 32px 0 14px;
+  color: var(--pgeservicos-text);
+}
+
+.pgeservicos-subtitle {
+  margin-bottom: 22px;
+  color: var(--pgeservicos-muted);
+  line-height: 1.5;
+}
+
+.pgeservicos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  align-items: stretch;
+}
+
+.pgeservicos-card {
+  background: var(--pgeservicos-surface);
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 14px;
+  padding: 22px;
+  min-height: 205px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.pgeservicos-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--pgeservicos-primary);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+}
+
+.pgeservicos-card-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pgeservicos-primary-soft);
+  color: var(--pgeservicos-accent-text);
+  font-size: 22px;
+  margin-bottom: 14px;
+}
+
+.pgeservicos-card h3 {
+  margin: 0 0 10px;
+  color: var(--pgeservicos-heading);
+  font-size: 18px;
+}
+
+.pgeservicos-card p {
+  color: var(--pgeservicos-muted);
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+.pgeservicos-card a {
+  display: inline-block;
+  text-decoration: none;
+  background: var(--pgeservicos-primary);
+  color: var(--pgeservicos-on-primary);
+  padding: 8px 13px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.pgeservicos-card a:hover {
+  background: rgba(var(--pgeservicos-primary-rgb), 0.86);
+  color: var(--pgeservicos-on-primary);
+}
+
+.pgeservicos-info-box,
+.pgeservicos-service-page {
+  background: var(--pgeservicos-surface);
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 14px;
+  padding: 22px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.pgeservicos-service-page {
+  padding: 28px;
+}
+
+.pgeservicos-info-box h3,
+.pgeservicos-service-page h1,
+.pgeservicos-service-page h2 {
+  color: var(--pgeservicos-text);
+}
+
+.pgeservicos-info-box h3,
+.pgeservicos-service-page h1 {
+  margin-top: 0;
+}
+
+.pgeservicos-info-box p,
+.pgeservicos-info-box li,
+.pgeservicos-service-page p,
+.pgeservicos-service-page li {
+  color: var(--pgeservicos-muted);
+  line-height: 1.55;
+  font-size: 14px;
+}
+
+.pgeservicos-info-box ul,
+.pgeservicos-service-page ul {
+  padding-left: 20px;
+}
+
+.pgeservicos-back-link {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: var(--pgeservicos-accent-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pgeservicos-area-blue .pgeservicos-card-icon {
+  background: var(--pgeservicos-primary-soft);
+  color: var(--pgeservicos-accent-text);
+}
+
+.pgeservicos-card.pgeservicos-area-orange:hover,
+.pgeservicos-area-orange .pgeservicos-card:hover {
+  border-color: var(--pgeservicos-primary);
+}
+
+@media (max-width: 800px) {
+  .pgeservicos-hero {
+    padding: 24px;
+  }
+}
