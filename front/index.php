@@ -9,6 +9,7 @@ global $CFG_GLPI;
 $catalog = include(__DIR__ . '/../data/catalog/services.php');
 require_once(__DIR__ . '/../inc/catalog/formcreator_catalog.php');
 require_once(__DIR__ . '/../inc/theme.php');
+require_once(__DIR__ . '/../inc/tickets_catalog.php');
 
 function pgeservicos_h($value) {
     return htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
@@ -170,6 +171,15 @@ function pgeservicos_build_formcreator_search_results($area_key, $area, $root_do
 
 $search_results = pgeservicos_build_search_index($catalog, $CFG_GLPI['root_doc'] ?? '');
 $index_url = ($CFG_GLPI['root_doc'] ?? '') . '/plugins/pgeservicos/front/index.php';
+$meus_chamados_url = ($CFG_GLPI['root_doc'] ?? '') . '/plugins/pgeservicos/front/meus_chamados.php';
+$meus_chamados_updates = pgeservicos_count_user_ticket_updates();
+$search_results[] = [
+    'title'       => 'Meus chamados',
+    'description' => 'Acompanhe os chamados em que você está envolvido e veja atualizações recentes.',
+    'type'        => 'Portal',
+    'url'         => $meus_chamados_url,
+    'keywords'    => 'meus chamados tickets acompanhamento atualizações requerente observador técnico grupo'
+];
 $search_results[] = [
     'title'       => 'Canais de atendimento',
     'description' => 'Telefones, WhatsApp e e-mails dos suportes de TI, GEAD e PGE.Net.',
@@ -228,13 +238,35 @@ pgeservicos_theme_print_vars();
 echo "<div class='pgeservicos-container pgeservicos-index-page'>";
 
 echo "
-<section class='pgeservicos-hero'>
-    <h1>Portal de Serviços da PGE</h1>
-    <p>
-        Ambiente centralizado para consulta dos serviços prestados pelas áreas internas,
-        reunindo orientações, escopo de atendimento e caminhos adequados para solicitação
-        de demandas de Informática, Administração, Comissões e Comunicação.
-    </p>
+<section class='pgeservicos-home-top'>
+    <div class='pgeservicos-hero'>
+        <h1>Portal de Serviços da PGE</h1>
+        <p>
+            Ambiente centralizado para consulta dos serviços prestados pelas áreas internas,
+            reunindo orientações, escopo de atendimento e caminhos adequados para solicitação
+            de demandas de Informática, Administração, Comissões e Comunicação.
+        </p>
+    </div>
+
+    <a class='pgeservicos-my-tickets-card' href='" . pgeservicos_h($meus_chamados_url) . "'>
+        " . ($meus_chamados_updates > 0
+            ? "<span class='pgeservicos-my-tickets-alert'>"
+                . pgeservicos_h($meus_chamados_updates)
+                . "</span>"
+            : '') . "
+        <span class='pgeservicos-card-icon'>
+            <i class='ti ti-ticket' aria-hidden='true'></i>
+        </span>
+        <strong>Meus chamados</strong>
+        <small>Acompanhe seus chamados e atualizações.</small>
+        " . ($meus_chamados_updates > 0
+            ? "<em>"
+                . pgeservicos_h($meus_chamados_updates)
+                . " "
+                . ($meus_chamados_updates === 1 ? 'nova atualização' : 'novas atualizações')
+                . "</em>"
+            : "<em>Sem novas atualizações</em>") . "
+    </a>
 </section>
 ";
 

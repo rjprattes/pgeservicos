@@ -1,0 +1,374 @@
+.pgeservicos-meus-chamados-page {
+  color: var(--pgeservicos-text);
+}
+
+.pgeservicos-meus-chamados-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px;
+  align-items: end;
+}
+
+.pgeservicos-meus-chamados-back {
+  margin-bottom: 18px;
+}
+
+.pgeservicos-meus-chamados-summary {
+  display: grid;
+  gap: 4px;
+  min-width: 190px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--pgeservicos-on-primary);
+}
+
+.pgeservicos-meus-chamados-summary strong {
+  font-size: 34px;
+  line-height: 1;
+}
+
+.pgeservicos-meus-chamados-summary span,
+.pgeservicos-meus-chamados-summary em {
+  font-size: 13px;
+  font-style: normal;
+}
+
+.pgeservicos-meus-chamados-summary em {
+  width: fit-content;
+  margin-top: 4px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  font-weight: 850;
+}
+
+.pgeservicos-meus-chamados-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.4fr) repeat(3, minmax(160px, 1fr));
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 22px;
+  padding: 18px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 14px;
+  background: var(--pgeservicos-surface);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.pgeservicos-filter-field {
+  display: grid;
+  gap: 6px;
+}
+
+.pgeservicos-filter-field label,
+.pgeservicos-filter-check span {
+  color: var(--pgeservicos-heading);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.pgeservicos-filter-field input,
+.pgeservicos-filter-field select {
+  min-height: 42px;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 8px;
+  background: var(--pgeservicos-surface);
+  color: var(--pgeservicos-text);
+  outline: none;
+}
+
+.pgeservicos-filter-field input:focus,
+.pgeservicos-filter-field select:focus {
+  border-color: var(--pgeservicos-accent-text);
+  box-shadow: 0 0 0 3px rgba(var(--pgeservicos-primary-rgb), 0.16);
+}
+
+.pgeservicos-filter-check {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 42px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 8px;
+  background: var(--pgeservicos-primary-softer);
+}
+
+.pgeservicos-filter-check input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.pgeservicos-filter-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.pgeservicos-filter-actions button,
+.pgeservicos-filter-actions a,
+.pgeservicos-ticket-card-action a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 9px 13px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--pgeservicos-primary);
+  color: var(--pgeservicos-on-primary);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pgeservicos-filter-actions a {
+  border: 1px solid var(--pgeservicos-border);
+  background: var(--pgeservicos-surface);
+  color: var(--pgeservicos-accent-text);
+}
+
+.pgeservicos-filter-actions button:hover,
+.pgeservicos-filter-actions button:focus,
+.pgeservicos-ticket-card-action a:hover,
+.pgeservicos-ticket-card-action a:focus {
+  background: rgba(var(--pgeservicos-primary-rgb), 0.86);
+  color: var(--pgeservicos-on-primary);
+  text-decoration: none;
+}
+
+.pgeservicos-filter-actions a:hover,
+.pgeservicos-filter-actions a:focus {
+  background: var(--pgeservicos-primary-soft);
+  color: var(--pgeservicos-accent-text);
+}
+
+.pgeservicos-ticket-list {
+  display: grid;
+  gap: 14px;
+}
+
+.pgeservicos-ticket-card {
+  display: block;
+  padding: 18px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 14px;
+  background: var(--pgeservicos-surface);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.pgeservicos-ticket-card-updated {
+  border-color: #d92d20;
+  box-shadow: 0 8px 22px rgba(217, 45, 32, 0.16);
+}
+
+.pgeservicos-ticket-title-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.pgeservicos-ticket-title-row h2 {
+  margin: 0;
+  color: var(--pgeservicos-heading);
+  font-size: 18px;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.pgeservicos-ticket-title-row h2 span {
+  color: var(--pgeservicos-accent-text);
+}
+
+.pgeservicos-ticket-update-dot {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #d92d20;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pgeservicos-ticket-update-dot::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.pgeservicos-ticket-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.pgeservicos-ticket-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--pgeservicos-primary-softer);
+  color: var(--pgeservicos-accent-text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pgeservicos-ticket-area {
+  background: var(--pgeservicos-primary-soft);
+}
+
+.pgeservicos-ticket-involvement {
+  border: 1px solid var(--pgeservicos-border);
+  background: var(--pgeservicos-surface);
+  color: var(--pgeservicos-text);
+}
+
+.pgeservicos-status-1 {
+  background: rgba(47, 126, 203, 0.12);
+}
+
+.pgeservicos-status-2,
+.pgeservicos-status-3 {
+  background: rgba(22, 163, 74, 0.12);
+  color: #166534;
+}
+
+.pgeservicos-status-4 {
+  background: rgba(234, 179, 8, 0.18);
+  color: #854d0e;
+}
+
+.pgeservicos-status-5,
+.pgeservicos-status-6 {
+  background: rgba(100, 116, 139, 0.14);
+  color: #334155;
+}
+
+.pgeservicos-ticket-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0 0;
+}
+
+.pgeservicos-ticket-meta div {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 10px;
+  background: var(--pgeservicos-primary-softer);
+}
+
+.pgeservicos-ticket-meta dt {
+  margin-bottom: 3px;
+  color: var(--pgeservicos-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pgeservicos-ticket-meta dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--pgeservicos-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pgeservicos-ticket-card-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--pgeservicos-border);
+}
+
+.pgeservicos-meus-chamados-empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 42px 24px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 14px;
+  background: var(--pgeservicos-surface);
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+}
+
+.pgeservicos-meus-chamados-empty i {
+  color: var(--pgeservicos-accent-text);
+  font-size: 38px;
+}
+
+.pgeservicos-meus-chamados-empty h2 {
+  margin: 0;
+  color: var(--pgeservicos-heading);
+  font-size: 20px;
+}
+
+.pgeservicos-meus-chamados-empty p {
+  max-width: 620px;
+  margin: 0;
+  color: var(--pgeservicos-muted);
+  line-height: 1.55;
+}
+
+@media (max-width: 1050px) {
+  .pgeservicos-meus-chamados-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pgeservicos-ticket-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .pgeservicos-meus-chamados-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .pgeservicos-meus-chamados-summary {
+    min-width: 0;
+  }
+
+  .pgeservicos-meus-chamados-filters,
+  .pgeservicos-ticket-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .pgeservicos-ticket-title-row {
+    display: grid;
+  }
+
+  .pgeservicos-ticket-card-action {
+    align-items: stretch;
+  }
+
+  .pgeservicos-ticket-card-action a,
+  .pgeservicos-filter-actions button,
+  .pgeservicos-filter-actions a {
+    width: 100%;
+  }
+
+  .pgeservicos-filter-actions {
+    display: grid;
+  }
+}

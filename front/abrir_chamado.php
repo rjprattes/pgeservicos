@@ -6,6 +6,8 @@ Session::checkLoginUser();
 
 global $CFG_GLPI;
 
+require_once(__DIR__ . '/../inc/tickets_catalog.php');
+
 $tickets_id = isset($_GET['tickets_id']) ? (int)$_GET['tickets_id'] : 0;
 
 if ($tickets_id <= 0) {
@@ -31,6 +33,8 @@ if (!Session::changeActiveEntities($entities_id, 0)) {
         'Não foi possível alterar para a entidade do chamado. Verifique se o usuário possui acesso à entidade correspondente.'
     );
 }
+
+pgeservicos_mark_ticket_seen($tickets_id, $ticket->fields['date_mod'] ?? date('Y-m-d H:i:s'));
 
 Html::redirect($CFG_GLPI['root_doc'] . '/front/ticket.form.php?id=' . $tickets_id);
 exit;

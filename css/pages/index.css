@@ -1,3 +1,91 @@
+.pgeservicos-home-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 18px;
+  align-items: stretch;
+  margin-bottom: 28px;
+}
+
+.pgeservicos-home-top .pgeservicos-hero {
+  margin-bottom: 0;
+}
+
+.pgeservicos-my-tickets-card {
+  position: relative;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-height: 168px;
+  padding: 20px;
+  border: 2px solid rgba(var(--pgeservicos-primary-rgb), 0.3);
+  border-radius: 16px;
+  background: var(--pgeservicos-surface);
+  color: var(--pgeservicos-text);
+  text-decoration: none;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.pgeservicos-my-tickets-card:hover,
+.pgeservicos-my-tickets-card:focus {
+  transform: translateY(-2px);
+  border-color: var(--pgeservicos-primary);
+  color: var(--pgeservicos-text);
+  text-decoration: none;
+  box-shadow: 0 12px 26px rgba(var(--pgeservicos-primary-rgb), 0.18);
+}
+
+.pgeservicos-my-tickets-card .pgeservicos-card-icon {
+  margin-bottom: 2px;
+}
+
+.pgeservicos-my-tickets-card strong {
+  color: var(--pgeservicos-heading);
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.pgeservicos-my-tickets-card small {
+  color: var(--pgeservicos-muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.pgeservicos-my-tickets-card em {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 4px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--pgeservicos-primary-soft);
+  color: var(--pgeservicos-accent-text);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.pgeservicos-my-tickets-alert {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 9px;
+  border: 3px solid var(--pgeservicos-surface);
+  border-radius: 999px;
+  background: #d92d20;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 900;
+  box-shadow: 0 8px 18px rgba(217, 45, 32, 0.35);
+}
+
 .pgeservicos-search {
   position: relative;
   display: grid;
@@ -333,6 +421,14 @@
 }
 
 @media (max-width: 900px) {
+  .pgeservicos-home-top {
+    grid-template-columns: 1fr;
+  }
+
+  .pgeservicos-my-tickets-card {
+    min-height: auto;
+  }
+
   .pgeservicos-contact-list {
     grid-template-columns: 1fr;
   }
