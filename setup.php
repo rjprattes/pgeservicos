@@ -1,6 +1,6 @@
 <?php
 
-define('PLUGIN_PGESERVICOS_VERSION', '0.0.1');
+define('PLUGIN_PGESERVICOS_VERSION', '0.0.2');
 
 /**
  * Inicialização do plugin.
