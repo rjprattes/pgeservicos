@@ -147,19 +147,65 @@ if (!function_exists('pgeservicos_ticket_action_add_task')) {
             'add'         => 1
         ];
 
-        $task->check(-1, CREATE, $input);
-
         if (!empty($_POST['users_id_tech'])) {
-            $input['users_id_tech'] = (int)$_POST['users_id_tech'];
+            $users_id_tech = (int)$_POST['users_id_tech'];
+            $user = new User();
+
+            if ($users_id_tech <= 0 || !$user->getFromDB($users_id_tech) || (int)($user->fields['is_deleted'] ?? 0) === 1 || (int)($user->fields['is_active'] ?? 1) === 0) {
+                Session::addMessageAfterRedirect('Usuário atribuído inválido.', false, ERROR);
+                return false;
+            }
+
+            $input['users_id_tech'] = $users_id_tech;
         }
 
         if (!empty($_POST['groups_id_tech'])) {
-            $input['groups_id_tech'] = (int)$_POST['groups_id_tech'];
+            $groups_id_tech = (int)$_POST['groups_id_tech'];
+            $group = new Group();
+
+            if (
+                $groups_id_tech <= 0
+                || !$group->getFromDB($groups_id_tech)
+                || (int)($group->fields['is_deleted'] ?? 0) === 1
+                || (int)($group->fields['is_task'] ?? 0) !== 1
+            ) {
+                Session::addMessageAfterRedirect('Grupo atribuído inválido.', false, ERROR);
+                return false;
+            }
+
+            $input['groups_id_tech'] = $groups_id_tech;
         }
 
         if (!empty($_POST['end'])) {
-            $input['end'] = str_replace('T', ' ', (string)$_POST['end']) . ':00';
+            $end = str_replace('T', ' ', trim((string)$_POST['end']));
+
+            if (!preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/', $end) || strtotime($end) === false) {
+                Session::addMessageAfterRedirect('Data de conclusão inválida.', false, ERROR);
+                return false;
+            }
+
+            $input['end'] = $end . ':00';
         }
+
+        if (isset($_POST['actiontime']) && $_POST['actiontime'] !== '') {
+            $actiontime = (int)$_POST['actiontime'];
+            $allowed_actiontimes = [0, 300, 600, 900, 1800, 2700, 3600, 5400, 7200, 10800, 14400, 28800];
+
+            if (!in_array($actiontime, $allowed_actiontimes, true)) {
+                Session::addMessageAfterRedirect('Duração inválida para a tarefa.', false, ERROR);
+                return false;
+            }
+
+            if ($actiontime > 0) {
+                $input['actiontime'] = $actiontime;
+
+                if (!empty($input['end'])) {
+                    $input['begin'] = date('Y-m-d H:i:s', strtotime($input['end']) - $actiontime);
+                }
+            }
+        }
+
+        $task->check(-1, CREATE, $input);
 
         $tasks_id = $task->add($input);
 
@@ -215,8 +261,10 @@ if (!function_exists('pgeservicos_ticket_action_add_validation')) {
     function pgeservicos_ticket_action_add_validation(Ticket $ticket) {
         $users_id_validate = (int)($_POST['users_id_validate'] ?? 0);
 
-        if ($users_id_validate <= 0) {
-            Session::addMessageAfterRedirect('Informe o ID do usuário validador.', false, ERROR);
+        $user = new User();
+
+        if ($users_id_validate <= 0 || !$user->getFromDB($users_id_validate) || (int)($user->fields['is_deleted'] ?? 0) === 1 || (int)($user->fields['is_active'] ?? 1) === 0) {
+            Session::addMessageAfterRedirect('Selecione um usuário validador válido.', false, ERROR);
             return false;
         }
 
@@ -244,34 +292,185 @@ if (!function_exists('pgeservicos_ticket_action_add_validation')) {
     }
 }
 
+if (!function_exists('pgeservicos_ticket_action_link_existing_document')) {
+    function pgeservicos_ticket_action_link_existing_document(Ticket $ticket, $documents_id) {
+        global $DB;
+
+        $documents_id = (int)$documents_id;
+
+        if ($documents_id <= 0) {
+            Session::addMessageAfterRedirect('Documento inválido.', false, ERROR);
+            return false;
+        }
+
+        if (!$ticket->canAddItem('Document')) {
+            Session::addMessageAfterRedirect('Você não tem permissão para vincular documentos a este chamado.', false, ERROR);
+            return false;
+        }
+
+        $document = new Document();
+
+        if (!$document->getFromDB($documents_id) || (int)($document->fields['is_deleted'] ?? 0) === 1) {
+            Session::addMessageAfterRedirect('Documento inválido.', false, ERROR);
+            return false;
+        }
+
+        if (!$document->can($documents_id, READ)) {
+            Session::addMessageAfterRedirect('Você não tem permissão para vincular este documento.', false, ERROR);
+            return false;
+        }
+
+        $already_linked = $DB->request([
+            'COUNT' => 'cpt',
+            'FROM'  => 'glpi_documents_items',
+            'WHERE' => [
+                'documents_id' => $documents_id,
+                'itemtype'     => Ticket::getType(),
+                'items_id'     => (int)$ticket->getID()
+            ]
+        ])->current();
+
+        if ((int)($already_linked['cpt'] ?? 0) > 0) {
+            Session::addMessageAfterRedirect('Este documento já está vinculado ao chamado.', false, ERROR);
+            return false;
+        }
+
+        $document_item = new Document_Item();
+        $input = [
+            'documents_id' => $documents_id,
+            'itemtype'     => Ticket::getType(),
+            'items_id'     => (int)$ticket->getID(),
+            'users_id'     => (int)Session::getLoginUserID()
+        ];
+
+        $document_item->check(-1, CREATE, $input);
+
+        if ($document_item->add($input)) {
+            Session::addMessageAfterRedirect('Documento vinculado ao chamado com sucesso.');
+            return true;
+        }
+
+        Session::addMessageAfterRedirect('Não foi possível anexar o documento ao chamado.', false, ERROR);
+        return false;
+    }
+}
+
 if (!function_exists('pgeservicos_ticket_action_add_document')) {
     function pgeservicos_ticket_action_add_document(Ticket $ticket) {
-        if (!pgeservicos_ticket_action_has_upload('document')) {
-            Session::addMessageAfterRedirect('Selecione um arquivo para anexar.', false, ERROR);
+        $documents_id = (int)($_POST['documents_id'] ?? 0);
+        $has_upload = pgeservicos_ticket_action_has_upload('document');
+
+        if ($documents_id <= 0 && !$has_upload) {
+            Session::addMessageAfterRedirect('Nenhum documento ou arquivo foi informado.', false, ERROR);
+            return false;
+        }
+
+        if ($documents_id > 0 && $has_upload) {
+            Session::addMessageAfterRedirect('Selecione um documento existente ou envie um novo arquivo, não ambos.', false, ERROR);
+            return false;
+        }
+
+        if ($documents_id > 0) {
+            return pgeservicos_ticket_action_link_existing_document($ticket, $documents_id);
+        }
+
+        if (!$ticket->canAddItem('Document')) {
+            Session::addMessageAfterRedirect('Você não tem permissão para anexar documentos a este chamado.', false, ERROR);
             return false;
         }
 
         $input = [
-            'name'         => trim((string)($_POST['document_name'] ?? '')),
+            'name'         => (string)($_FILES['document']['name'] ?? ('Documento chamado ' . $ticket->getID())),
             'entities_id'  => (int)$ticket->fields['entities_id'],
             'is_recursive' => 0,
             'itemtype'     => Ticket::getType(),
             'items_id'     => (int)$ticket->getID()
         ];
 
-        if ($input['name'] === '') {
-            $input['name'] = (string)($_FILES['document']['name'] ?? ('Documento chamado ' . $ticket->getID()));
-        }
-
         $document = new Document();
         $document->check(-1, CREATE, $input);
 
-        if (Document::uploadDocument($input, $_FILES['document']) && $document->add($input)) {
+        if (!Document::uploadDocument($input, $_FILES['document'])) {
+            Session::addMessageAfterRedirect('Arquivo inválido ou acima do tamanho permitido.', false, ERROR);
+            return false;
+        }
+
+        if ($document->add($input)) {
             Session::addMessageAfterRedirect('Documento anexado com sucesso.');
             return true;
         }
 
         Session::addMessageAfterRedirect('Não foi possível anexar o documento.', false, ERROR);
+        return false;
+    }
+}
+
+
+if (!function_exists('pgeservicos_ticket_action_timeline_item_belongs')) {
+    function pgeservicos_ticket_action_timeline_item_belongs(Ticket $ticket, CommonDBTM $item, $itemtype) {
+        $tickets_id = (int)$ticket->getID();
+
+        if ($itemtype === Document_Item::getType()) {
+            return (string)($item->fields['itemtype'] ?? '') === Ticket::getType()
+                && (int)($item->fields['items_id'] ?? 0) === $tickets_id;
+        }
+
+        if (in_array($itemtype, [ITILFollowup::getType(), ITILSolution::getType()], true)) {
+            return (string)($item->fields['itemtype'] ?? '') === Ticket::getType()
+                && (int)($item->fields['items_id'] ?? 0) === $tickets_id;
+        }
+
+        if ($itemtype === TicketTask::getType()) {
+            return (int)($item->fields['tickets_id'] ?? 0) === $tickets_id;
+        }
+
+        return false;
+    }
+}
+
+if (!function_exists('pgeservicos_ticket_action_delete_timeline_item')) {
+    function pgeservicos_ticket_action_delete_timeline_item(Ticket $ticket) {
+        $itemtype = (string)($_POST['itemtype'] ?? '');
+        $items_id = (int)($_POST['items_id'] ?? 0);
+        $allowed = [
+            ITILFollowup::getType(),
+            ITILSolution::getType(),
+            TicketTask::getType(),
+            Document_Item::getType()
+        ];
+
+        if ($items_id <= 0 || !in_array($itemtype, $allowed, true) || !class_exists($itemtype)) {
+            Session::addMessageAfterRedirect('Item inválido.', false, ERROR);
+            return false;
+        }
+
+        $item = new $itemtype();
+
+        if (!$item instanceof CommonDBTM || !$item->getFromDB($items_id)) {
+            Session::addMessageAfterRedirect('Item inválido.', false, ERROR);
+            return false;
+        }
+
+        if (method_exists($item, 'setParentItem')) {
+            $item->setParentItem($ticket);
+        }
+
+        if (!pgeservicos_ticket_action_timeline_item_belongs($ticket, $item, $itemtype)) {
+            Session::addMessageAfterRedirect('O item não pertence a este chamado.', false, ERROR);
+            return false;
+        }
+
+        if (!$item->can($items_id, DELETE)) {
+            Session::addMessageAfterRedirect('Você não tem permissão para excluir este item.', false, ERROR);
+            return false;
+        }
+
+        if ($item->delete(['id' => $items_id])) {
+            Session::addMessageAfterRedirect($itemtype === Document_Item::getType() ? 'Documento desvinculado com sucesso.' : 'Item excluído com sucesso.');
+            return true;
+        }
+
+        Session::addMessageAfterRedirect('Este item não pode ser excluído.', false, ERROR);
         return false;
     }
 }
@@ -286,7 +485,21 @@ if (!function_exists('pgeservicos_ticket_action_update_timeline')) {
             return false;
         }
 
-        if ($timeline_type === 'followup') {
+        $type_labels = [
+            'opening'  => 'mensagem de abertura',
+            'followup' => 'acompanhamento',
+            'task'     => 'tarefa',
+            'solution' => 'solução'
+        ];
+
+        if ($timeline_type === 'opening') {
+            $item = $ticket;
+
+            if ($timeline_id !== (int)$ticket->getID()) {
+                Session::addMessageAfterRedirect('Abertura inválida para este chamado.', false, ERROR);
+                return false;
+            }
+        } elseif ($timeline_type === 'followup') {
             $item = new ITILFollowup();
 
             if (
@@ -320,33 +533,67 @@ if (!function_exists('pgeservicos_ticket_action_update_timeline')) {
             return false;
         }
 
-        $item->check($timeline_id, UPDATE);
+        $label = $type_labels[$timeline_type] ?? 'item';
 
-        if ($item->update([
-            'id'      => $timeline_id,
-            'content' => $content
-        ])) {
-            pgeservicos_ticket_action_attach_upload($ticket, $item->getType(), $timeline_id);
-            Session::addMessageAfterRedirect('Item atualizado com sucesso.');
+        if (!$item->can($timeline_id, UPDATE)) {
+            Session::addMessageAfterRedirect('Você não tem permissão para editar esta ' . $label . '.', false, ERROR);
+            return false;
+        }
+
+        $current_content = trim((string)($item->fields['content'] ?? ''));
+        $has_upload = pgeservicos_ticket_action_has_upload('document');
+
+        if ($current_content === $content && !$has_upload) {
+            Session::addMessageAfterRedirect('Nenhuma alteração detectada.');
             return true;
         }
 
-        Session::addMessageAfterRedirect('Não foi possível atualizar o item.', false, ERROR);
+        $input = [
+            'id'      => $timeline_id,
+            'content' => $content,
+            '_update' => 1
+        ];
+
+        if ($item->update($input)) {
+            if (!pgeservicos_ticket_action_attach_upload($ticket, $item->getType(), $timeline_id)) {
+                Session::addMessageAfterRedirect('A mensagem foi atualizada, mas não foi possível anexar o arquivo enviado.', false, ERROR);
+                return false;
+            }
+
+            Session::addMessageAfterRedirect('Mensagem atualizada com sucesso.');
+            return true;
+        }
+
+        Session::addMessageAfterRedirect('O GLPI recusou a atualização da ' . $label . '. Verifique se o conteúdo é válido e se seu perfil pode alterar esse item.', false, ERROR);
         return false;
+    }
+}
+
+if (!function_exists('pgeservicos_ticket_action_solution_decision_content')) {
+    function pgeservicos_ticket_action_solution_decision_content($approval, $comment) {
+        $title = $approval === 'approve' ? 'Solução aprovada' : 'Solução reprovada';
+        $comment = trim((string)$comment);
+        $html = '<p><strong>' . htmlspecialchars($title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</strong></p>';
+
+        if ($comment !== '') {
+            $html .= '<p>' . nl2br(htmlspecialchars($comment, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')) . '</p>';
+        }
+
+        return $html;
     }
 }
 
 if (!function_exists('pgeservicos_ticket_action_solution_approval')) {
     function pgeservicos_ticket_action_solution_approval(Ticket $ticket) {
         $approval = (string)($_POST['approval'] ?? '');
-        $content = pgeservicos_ticket_action_content();
+        $comment = pgeservicos_ticket_action_content();
 
         if (!$ticket->canApprove()) {
             Session::addMessageAfterRedirect('Você não tem permissão para aprovar ou reprovar a solução.', false, ERROR);
             return false;
         }
 
-        if ($approval === 'reject' && $content === '') {
+        if ($approval === 'reject' && $comment === '') {
             Session::addMessageAfterRedirect('Informe o motivo da reprovação da solução.', false, ERROR);
             return false;
         }
@@ -355,7 +602,7 @@ if (!function_exists('pgeservicos_ticket_action_solution_approval')) {
         $input = [
             'itemtype'   => Ticket::getType(),
             'items_id'   => (int)$ticket->getID(),
-            'content'    => $content,
+            'content'    => pgeservicos_ticket_action_solution_decision_content($approval, $comment),
             'is_private' => 0,
             'add'        => 1
         ];
@@ -370,8 +617,10 @@ if (!function_exists('pgeservicos_ticket_action_solution_approval')) {
         }
 
         $followup->check(-1, CREATE, $input);
+        $followups_id = $followup->add($input);
 
-        if ($followup->add($input)) {
+        if ($followups_id) {
+            pgeservicos_ticket_action_attach_upload($ticket, ITILFollowup::getType(), $followups_id);
             Session::addMessageAfterRedirect($approval === 'approve' ? 'Solução aprovada com sucesso.' : 'Solução reprovada com sucesso.');
             return true;
         }
@@ -427,60 +676,32 @@ if (!function_exists('pgeservicos_ticket_action_reopen_ticket')) {
     }
 }
 
-if (!function_exists('pgeservicos_ticket_action_cancel_ticket')) {
-    function pgeservicos_ticket_action_cancel_ticket(Ticket $ticket) {
-        $content = pgeservicos_ticket_action_content();
+if (!function_exists('pgeservicos_ticket_action_trash_ticket')) {
+    function pgeservicos_ticket_action_trash_ticket(Ticket $ticket) {
+        $tickets_id = (int)$ticket->getID();
 
-        if ((int)$ticket->fields['status'] === Ticket::CLOSED) {
-            Session::addMessageAfterRedirect('Este chamado já está fechado.', false, ERROR);
+        if (!$ticket->can($tickets_id, DELETE)) {
+            Session::addMessageAfterRedirect('Você não tem permissão para mandar este chamado para a lixeira.', false, ERROR);
             return false;
         }
 
-        $target_status = 0;
-
-        if (Ticket::isAllowedStatus((int)$ticket->fields['status'], Ticket::CLOSED)) {
-            $target_status = Ticket::CLOSED;
-        } elseif (Ticket::isAllowedStatus((int)$ticket->fields['status'], Ticket::SOLVED)) {
-            $target_status = Ticket::SOLVED;
+        if ($ticket->isField('is_deleted') && (int)($ticket->fields['is_deleted'] ?? 0) === 1) {
+            Session::addMessageAfterRedirect('Este chamado já está na lixeira.', false, WARNING);
+            return 'tickets_list';
         }
 
-        if ($target_status <= 0) {
-            Session::addMessageAfterRedirect('Seu perfil não permite cancelar este chamado a partir do status atual.', false, ERROR);
+        if (!$ticket->maybeDeleted()) {
+            Session::addMessageAfterRedirect('Este chamado não pode ser enviado para a lixeira.', false, ERROR);
             return false;
         }
 
-        if (!pgeservicos_ticket_action_assert_content($content)) {
-            return false;
+        if ($ticket->delete(['id' => $tickets_id])) {
+            Session::addMessageAfterRedirect('Chamado enviado para a lixeira.');
+            return 'tickets_list';
         }
 
-        $ticket->check((int)$ticket->getID(), UPDATE);
-
-        $followup = new ITILFollowup();
-        $input = [
-            'itemtype'   => Ticket::getType(),
-            'items_id'   => (int)$ticket->getID(),
-            'content'    => $content,
-            'is_private' => 0,
-            'add'        => 1
-        ];
-
-        $followup->check(-1, CREATE, $input);
-
-        if (!$followup->add($input)) {
-            Session::addMessageAfterRedirect('Não foi possível registrar a justificativa do cancelamento.', false, ERROR);
-            return false;
-        }
-
-        if (!$ticket->update([
-            'id'     => (int)$ticket->getID(),
-            'status' => $target_status
-        ])) {
-            Session::addMessageAfterRedirect('A justificativa foi registrada, mas não foi possível cancelar o chamado.', false, ERROR);
-            return false;
-        }
-
-        Session::addMessageAfterRedirect('Chamado cancelado com sucesso.');
-        return true;
+        Session::addMessageAfterRedirect('Não foi possível mandar este chamado para a lixeira.', false, ERROR);
+        return false;
     }
 }
 
@@ -496,6 +717,12 @@ if (!function_exists('pgeservicos_ticket_action_update_details')) {
             'urgency'  => (int)($_POST['urgency'] ?? $ticket->fields['urgency']),
             'priority' => (int)($_POST['priority'] ?? $ticket->fields['priority'])
         ];
+
+        foreach (['itilcategories_id', 'requesttypes_id', 'locations_id'] as $field) {
+            if (array_key_exists($field, $_POST)) {
+                $input[$field] = (int)$_POST[$field];
+            }
+        }
 
         foreach (['time_to_own', 'time_to_resolve', 'internal_time_to_own', 'internal_time_to_resolve'] as $field) {
             if (array_key_exists($field, $_POST)) {
@@ -586,7 +813,6 @@ if (!function_exists('pgeservicos_ticket_action_actor_is_accessible')) {
                 'FROM'  => 'glpi_groups',
                 'WHERE' => [
                     'id' => $actor_id,
-                    'is_deleted' => 0,
                     'entities_id' => array_values(array_unique($group_entities))
                 ]
             ]) as $row) {
@@ -737,6 +963,11 @@ if (!function_exists('pgeservicos_ticket_action_handle')) {
     function pgeservicos_ticket_action_handle(Ticket $ticket, $action) {
         $action = preg_replace('/[^a-z_]/', '', (string)$action);
 
+        if ((int)($ticket->fields['status'] ?? 0) === Ticket::CLOSED && !in_array($action, ['reopen_ticket', 'trash_ticket'], true)) {
+            Session::addMessageAfterRedirect('Chamado fechado: esta ação não está disponível.', false, ERROR);
+            return false;
+        }
+
         switch ($action) {
             case 'add_followup':
                 return pgeservicos_ticket_action_add_followup($ticket);
@@ -748,6 +979,8 @@ if (!function_exists('pgeservicos_ticket_action_handle')) {
                 return pgeservicos_ticket_action_add_validation($ticket);
             case 'add_document':
                 return pgeservicos_ticket_action_add_document($ticket);
+            case 'delete_timeline_item':
+                return pgeservicos_ticket_action_delete_timeline_item($ticket);
             case 'update_timeline':
                 return pgeservicos_ticket_action_update_timeline($ticket);
             case 'update_details':
@@ -760,8 +993,8 @@ if (!function_exists('pgeservicos_ticket_action_handle')) {
                 return pgeservicos_ticket_action_solution_approval($ticket);
             case 'reopen_ticket':
                 return pgeservicos_ticket_action_reopen_ticket($ticket);
-            case 'cancel_ticket':
-                return pgeservicos_ticket_action_cancel_ticket($ticket);
+            case 'trash_ticket':
+                return pgeservicos_ticket_action_trash_ticket($ticket);
         }
 
         Session::addMessageAfterRedirect('Ação inválida.', false, ERROR);

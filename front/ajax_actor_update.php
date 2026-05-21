@@ -7,18 +7,41 @@ if (!defined('GLPI_KEEP_CSRF_TOKEN')) {
 include('../../../inc/includes.php');
 
 Session::checkLoginUser();
-Session::checkCSRF(['_glpi_csrf_token' => $_POST['_glpi_csrf_token'] ?? '']);
 
 require_once(__DIR__ . '/../inc/tickets_catalog.php');
 require_once(__DIR__ . '/../inc/ticket_view.php');
 require_once(__DIR__ . '/../inc/ticket_actions.php');
 
 header('Content-Type: application/json; charset=UTF-8');
+$GLOBALS['pgeservicos_actor_ob_level'] = ob_get_level();
+ob_start();
 
 function pgeservicos_ajax_actor_response($payload, $status = 200) {
+    $base_ob_level = $GLOBALS['pgeservicos_actor_ob_level'] ?? 0;
+
+    while (ob_get_level() > $base_ob_level) {
+        ob_end_clean();
+    }
+
+    if (isset($payload['ok']) && !isset($payload['success'])) {
+        $payload['success'] = (bool)$payload['ok'];
+    }
+
+    if (isset($payload['success']) && !isset($payload['ok'])) {
+        $payload['ok'] = (bool)$payload['success'];
+    }
+
     http_response_code($status);
+    header('Content-Type: application/json; charset=UTF-8');
     echo json_encode($payload);
     exit;
+}
+
+if (GLPI_USE_CSRF_CHECK && !Session::validateCSRF(['_glpi_csrf_token' => $_POST['_glpi_csrf_token'] ?? ''])) {
+    pgeservicos_ajax_actor_response([
+        'ok' => false,
+        'message' => 'Token de segurança inválido. Recarregue a página e tente novamente.'
+    ], 403);
 }
 
 function pgeservicos_ajax_actor_role_type($role) {
@@ -79,6 +102,10 @@ if ($ticket === false || !pgeservicos_ticket_view_can_manage_actors($ticket)) {
     pgeservicos_ajax_actor_response(['ok' => false, 'message' => 'Você não tem permissão para alterar atores.'], 403);
 }
 
+if ((int)($ticket->fields['status'] ?? 0) === Ticket::CLOSED) {
+    pgeservicos_ajax_actor_response(['ok' => false, 'message' => 'Chamado fechado: os atores estão em modo somente leitura.'], 403);
+}
+
 $action = preg_replace('/[^a-z_]/', '', (string)($_POST['action'] ?? ''));
 $role = pgeservicos_ticket_action_actor_key((string)($_POST['actor_role'] ?? ''));
 $role_type = pgeservicos_ajax_actor_role_type($role);
@@ -96,8 +123,6 @@ if ($action === 'remove_actor') {
     if (!$link->getFromDB($link_id) || (int)$link->fields['tickets_id'] !== $tickets_id) {
         pgeservicos_ajax_actor_response(['ok' => false, 'message' => 'Ator não pertence a este chamado.'], 404);
     }
-
-    $link->check($link_id, DELETE);
 
     if ($link->delete(['id' => $link_id])) {
         pgeservicos_ajax_actor_response(['ok' => true, 'message' => 'Ator removido.', 'link_id' => $link_id]);
@@ -150,8 +175,16 @@ if ($kind === 'user') {
     $input['groups_id'] = $actor_id;
 }
 
-$link->check(-1, CREATE, $input);
-$link_id = (int)$link->add($input);
+$link_id = 0;
+
+try {
+    $link_id = (int)$link->add($input);
+} catch (Throwable $e) {
+    pgeservicos_ajax_actor_response([
+        'ok' => false,
+        'message' => 'Não foi possível adicionar o ator. Verifique permissões e entidade.'
+    ], 500);
+}
 
 if ($link_id > 0) {
     pgeservicos_ajax_actor_response([
