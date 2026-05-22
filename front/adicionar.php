@@ -1872,16 +1872,18 @@ echo "<link rel='stylesheet' href='"
     . "'>";
 
 pgeservicos_theme_print_vars();
+pgeservicos_theme_print_sidebar_sync_script($CFG_GLPI['root_doc'] ?? '', $asset_version);
 
 echo "<div class='pgegestor-page'>";
 echo "<div class='pgegestor-card'>";
-
+echo "<div class='pgegestor-form-header'>";
 echo "<h1>" . pgegestor_h($page_h1) . "</h1>";
 echo "<p class='pgegestor-muted'>"
     . ($is_edit
         ? 'Atualize os dados da reserva selecionada.'
         : 'Preencha os dados abaixo para reservar a sala/equipamento.')
     . "</p>";
+echo "</div>";
 
 if ($is_edit && $reservation_is_past && !$can_manage_past_reservation) {
     echo "<div class='pgegestor-warning'>";

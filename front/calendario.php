@@ -355,6 +355,7 @@ echo "<link rel='stylesheet' href='"
     . "'>";
 
 pgeservicos_theme_print_vars();
+pgeservicos_theme_print_sidebar_sync_script($CFG_GLPI['root_doc'] ?? '', $asset_version);
 
 $month_title = pgegestor_get_month_name_pt((int)$current_month->format('m')) . ' de ' . $current_month->format('Y');
 $today_date = date('Y-m-d');

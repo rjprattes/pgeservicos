@@ -21,7 +21,7 @@
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.14);
-  color: var(--pgeservicos-on-primary);
+  color: inherit;
 }
 
 .pgeservicos-meus-chamados-summary strong {

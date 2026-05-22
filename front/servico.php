@@ -40,6 +40,7 @@ echo "<link rel='stylesheet' href='"
     . "'>";
 
 pgeservicos_theme_print_vars();
+pgeservicos_theme_print_sidebar_sync_script($CFG_GLPI['root_doc'] ?? '', $asset_version);
 
 $area_key     = $_GET['area'] ?? '';
 $service_key  = $_GET['servico'] ?? '';
@@ -168,13 +169,15 @@ $request       = pgeservicos_h($service['request'] ?? 'Registre a solicitação 
 
 echo "
 <div class='pgeservicos-service-page pgeservicos-area-{$area_color}'>
-    <a class='pgeservicos-back-link' href='" . pgeservicos_h($area_url) . "'>&larr; Voltar para {$area_title}</a>
+    <div class='pgeservicos-service-header'>
+        <a class='pgeservicos-back-link' href='" . pgeservicos_h($area_url) . "'>&larr; Voltar para {$area_title}</a>
 
-    <div class='pgeservicos-badge'>{$category}</div>
+        <div class='pgeservicos-badge'>{$category}</div>
 
-    <h1>{$title}</h1>
+        <h1>{$title}</h1>
 
-    <p>{$description}</p>
+        <p>{$description}</p>
+    </div>
 
     <h2>O que este serviço contempla</h2>
 ";

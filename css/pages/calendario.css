@@ -12,6 +12,8 @@
   --pgeservicos-border-light: var(--tblr-border-color-light, #f4f7fb);
   --pgeservicos-on-primary: var(--tblr-btn-color-text, #fff);
   --pgeservicos-accent-text: var(--pgeservicos-primary);
+  --pgeservicos-current-sidebar-bg: var(--pgeservicos-primary);
+  --pgeservicos-current-sidebar-color: var(--pgeservicos-on-primary);
   max-width: 1380px;
   margin: 22px auto;
   padding: 0 14px;
@@ -22,20 +24,25 @@
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 18px;
+  padding: 24px;
+  border-radius: 14px;
+  background: var(--pgeservicos-current-sidebar-bg);
+  color: var(--pgeservicos-current-sidebar-color);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
   flex-wrap: wrap;
 }
 
 .pgegestor-calendar-title {
+  margin: 0;
+  color: inherit;
   font-size: 2rem;
   font-weight: 700;
-  color: var(--pgeservicos-text);
-  margin: 0;
 }
 
 .pgegestor-calendar-subtitle {
   margin: 4px 0 0;
-  color: var(--pgeservicos-muted);
+  color: inherit;
   font-size: 14px;
 }
 

@@ -2259,10 +2259,10 @@
   }
 }
 
-/* Ticket header colors stay local to the plugin and do not read or alter the GLPI sidebar. */
+/* Ticket header colors stay local to the plugin; the sidebar itself is never altered. */
 .pgeservicos-chamado-page {
-  --pgeservicos-ticket-header-bg: var(--tblr-body-color);
-  --pgeservicos-ticket-header-fg: var(--tblr-body-bg);
+  --pgeservicos-ticket-header-bg: var(--pgeservicos-current-sidebar-bg, var(--tblr-body-color));
+  --pgeservicos-ticket-header-fg: var(--pgeservicos-current-sidebar-color, var(--tblr-body-bg));
   --pgeservicos-action-accent: var(--pgeservicos-primary);
   --pgeservicos-action-accent-rgb: var(--pgeservicos-primary-rgb);
   --pgeservicos-action-accent-fg: var(--pgeservicos-primary-contrast, var(--pgeservicos-on-primary));
@@ -2406,8 +2406,8 @@
 
 /* Ticket header colors stay scoped to the chamado page. */
 .pgeservicos-chamado-page {
-  --pgeservicos-ticket-header-bg: var(--tblr-body-color);
-  --pgeservicos-ticket-header-color: var(--tblr-body-bg);
+  --pgeservicos-ticket-header-bg: var(--pgeservicos-current-sidebar-bg, var(--tblr-body-color));
+  --pgeservicos-ticket-header-color: var(--pgeservicos-current-sidebar-color, var(--tblr-body-bg));
   --pgeservicos-action-bg: var(--tblr-primary, var(--pgeservicos-primary));
   --pgeservicos-action-color: var(--pgeservicos-primary-contrast, var(--tblr-btn-color-text, #fff));
   --pgeservicos-toast-bg: var(--pgeservicos-action-bg);
@@ -2690,19 +2690,20 @@
 
 .pgeservicos-chamado-topnav .pgeservicos-back-link,
 .pgeservicos-chamado-sticky-links a {
-  border-color: var(--pgeservicos-primary);
-  background: var(--pgeservicos-primary);
-  color: var(--pgeservicos-primary-contrast, var(--pgeservicos-action-color));
+  border-color: rgba(255, 255, 255, 0.86);
+  background: rgba(0, 0, 0, 0.12);
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
 }
 
 .pgeservicos-chamado-topnav .pgeservicos-back-link:hover,
 .pgeservicos-chamado-topnav .pgeservicos-back-link:focus,
 .pgeservicos-chamado-sticky-links a:hover,
 .pgeservicos-chamado-sticky-links a:focus {
-  border-color: var(--pgeservicos-primary);
-  background: color-mix(in srgb, var(--pgeservicos-primary) 86%, var(--pgeservicos-primary-contrast, var(--pgeservicos-action-color)));
-  color: var(--pgeservicos-primary-contrast, var(--pgeservicos-action-color));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pgeservicos-primary) 28%, transparent);
+  border-color: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
 }
 
 

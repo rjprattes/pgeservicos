@@ -100,7 +100,19 @@ if (!function_exists('pgeservicos_theme_print_vars')) {
             . $selector
             . "{--pgeservicos-primary:" . $primary . ";"
             . "--pgeservicos-on-primary:" . $primary_fg . ";"
-            . "--pgeservicos-accent-text:" . $accent_text . ";}"
+            . "--pgeservicos-accent-text:" . $accent_text . ";"
+            . "--pgeservicos-current-sidebar-bg:" . $primary . ";"
+            . "--pgeservicos-current-sidebar-color:" . $primary_fg . ";}"
             . "</style>";
+    }
+}
+
+if (!function_exists('pgeservicos_theme_print_sidebar_sync_script')) {
+    function pgeservicos_theme_print_sidebar_sync_script($root_doc, $asset_version = '1') {
+        echo "<script defer src='"
+            . htmlspecialchars((string)$root_doc, ENT_QUOTES, 'UTF-8')
+            . "/plugins/pgeservicos/js/shared/pgeservicos-theme.js?v="
+            . htmlspecialchars((string)$asset_version, ENT_QUOTES, 'UTF-8')
+            . "'></script>";
     }
 }

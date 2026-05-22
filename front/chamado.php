@@ -180,6 +180,7 @@ echo "<script defer src='"
     . "'></script>";
 
 pgeservicos_theme_print_vars();
+pgeservicos_theme_print_sidebar_sync_script($CFG_GLPI['root_doc'] ?? '', $asset_version);
 
 echo "<div class='pgeservicos-container pgeservicos-chamado-page' data-actor-search-url='"
     . pgeservicos_ticket_view_h($actor_search_url)

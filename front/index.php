@@ -234,6 +234,7 @@ echo "<link rel='stylesheet' href='"
     . "'>";
 
 pgeservicos_theme_print_vars();
+pgeservicos_theme_print_sidebar_sync_script($CFG_GLPI['root_doc'] ?? '', $asset_version);
 
 echo "<div class='pgeservicos-container pgeservicos-index-page'>";
 

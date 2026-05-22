@@ -13,18 +13,16 @@
   --pgeservicos-border-light: var(--tblr-border-color-light, #f2f3f4);
   --pgeservicos-on-primary: var(--tblr-btn-color-text, #fff);
   --pgeservicos-accent-text: var(--pgeservicos-primary);
+  --pgeservicos-current-sidebar-bg: var(--pgeservicos-primary);
+  --pgeservicos-current-sidebar-color: var(--pgeservicos-on-primary);
   max-width: 1200px;
   margin: 0 auto;
   padding: 28px 24px 48px;
 }
 
 .pgeservicos-hero {
-  background: linear-gradient(
-    135deg,
-    var(--pgeservicos-primary),
-    rgba(var(--pgeservicos-primary-rgb), 0.78)
-  );
-  color: var(--pgeservicos-on-primary);
+  background: var(--pgeservicos-current-sidebar-bg);
+  color: var(--pgeservicos-current-sidebar-color);
   padding: 34px;
   border-radius: 16px;
   margin-bottom: 28px;
@@ -33,12 +31,14 @@
 
 .pgeservicos-hero h1 {
   margin: 0 0 12px;
+  color: inherit;
   font-size: 30px;
   font-weight: 700;
 }
 
 .pgeservicos-hero p {
   max-width: 920px;
+  color: inherit;
   font-size: 15px;
   line-height: 1.6;
   margin: 0;
@@ -147,6 +147,35 @@
 .pgeservicos-info-box h3,
 .pgeservicos-service-page h1 {
   margin-top: 0;
+}
+
+
+.pgeservicos-service-header {
+  margin: -28px -28px 24px;
+  padding: 28px;
+  border-radius: 14px 14px 0 0;
+  background: var(--pgeservicos-current-sidebar-bg);
+  color: var(--pgeservicos-current-sidebar-color);
+}
+
+.pgeservicos-service-header .pgeservicos-back-link,
+.pgeservicos-service-header h1,
+.pgeservicos-service-header p {
+  color: inherit;
+}
+
+.pgeservicos-service-header .pgeservicos-back-link {
+  margin-bottom: 16px;
+}
+
+.pgeservicos-service-header .pgeservicos-badge {
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  color: inherit;
+}
+
+.pgeservicos-service-header p {
+  max-width: 860px;
+  margin-bottom: 0;
 }
 
 .pgeservicos-info-box p,
