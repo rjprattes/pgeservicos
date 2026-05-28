@@ -20,8 +20,12 @@ function plugin_init_pgeservicos() {
         'tools' => 'PluginPgeservicosPortal'
     ];
 
+    $PLUGIN_HOOKS['post_init']['pgeservicos'] = 'plugin_pgeservicos_redirect_home';
+
     $PLUGIN_HOOKS['add_css']['pgeservicos'][] = 'css/formcreator-pge.css';
+    $PLUGIN_HOOKS['add_css']['pgeservicos'][] = 'css/shared/pgeservicos-topbar.css';
     $PLUGIN_HOOKS['add_javascript']['pgeservicos'][] = 'js/formcreator-pge.js';
+    $PLUGIN_HOOKS['add_javascript']['pgeservicos'][] = 'js/shared/pgeservicos-topbar.js';
 }
 
 /**
