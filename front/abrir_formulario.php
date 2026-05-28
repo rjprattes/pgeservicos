@@ -27,7 +27,17 @@ if ($entity_id >= 0) {
     }
 }
 
-$form_url = $CFG_GLPI['root_doc'] . '/plugins/formcreator/front/formdisplay.php?id=' . $form_id;
+$_SESSION['pgeservicos_formcreator_portal'] = [
+    'form_id' => $form_id,
+    'created_at' => time(),
+];
+
+$form_url = $CFG_GLPI['root_doc']
+    . '/plugins/formcreator/front/formdisplay.php?'
+    . http_build_query([
+        'id' => $form_id,
+        'pgeservicos_portal' => 1,
+    ]);
 
 Html::redirect($form_url);
 exit;

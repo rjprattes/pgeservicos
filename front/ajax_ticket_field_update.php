@@ -102,6 +102,16 @@ if (!in_array($field, $allowed_selects, true) && !in_array($field, $allowed_date
 }
 
 if (in_array($field, $allowed_dates, true)) {
+    $config = pgeservicos_ticket_view_service_level_config($field);
+    $agreement_field = $config['agreement_field'] ?? '';
+
+    if ($agreement_field !== '' && (int)($ticket->fields[$agreement_field] ?? 0) > 0) {
+        pgeservicos_ticket_field_update_response([
+            'ok' => false,
+            'message' => 'Remova a SLA/OLA antes de alterar manualmente este prazo.'
+        ]);
+    }
+
     $value = '';
 
     if ($raw_value !== '') {
@@ -149,6 +159,8 @@ if (!$ticket->update($input)) {
         'message' => 'Não foi possível salvar a alteração.'
     ]);
 }
+
+pgeservicos_mark_ticket_seen($tickets_id);
 
 pgeservicos_ticket_field_update_response([
     'ok' => true,

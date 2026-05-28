@@ -1,12 +1,16 @@
 (function () {
   "use strict";
 
+  function normalizeEscapedNewlines(value) {
+    return String(value || "").replace(/\\r\\n|\\n|\\r/g, "<br>");
+  }
+
   function syncEditor(form) {
     const editor = form.querySelector(".pgeservicos-rich-editor");
     const input = form.querySelector(".pgeservicos-rich-input");
 
     if (editor && input) {
-      input.value = editor.innerHTML.trim();
+      input.value = normalizeEscapedNewlines(editor.innerHTML.trim());
     }
   }
 
@@ -22,6 +26,7 @@
 
   function runCommand(button) {
     const command = button.getAttribute("data-pgeservicos-command");
+    const insertion = button.getAttribute("data-pgeservicos-insert");
     const form = button.closest("label, form");
     const editor = form?.querySelector(".pgeservicos-rich-editor");
 
@@ -29,16 +34,27 @@
       return;
     }
 
-    if (command === "createLink") {
-      showLinkEditor(button, editor);
+    editor.focus();
+
+    if (insertion) {
+      document.execCommand("insertText", false, insertion);
       return;
     }
 
-    editor.focus();
+    if (command === "createLink" || command === "insertImage") {
+      showUrlEditor(button, editor, command);
+      return;
+    }
+
+    if (command === "insertTable") {
+      document.execCommand("insertHTML", false, "<table><tbody><tr><td>Conteúdo</td><td>Conteúdo</td></tr><tr><td>Conteúdo</td><td>Conteúdo</td></tr></tbody></table><p><br></p>");
+      return;
+    }
+
     document.execCommand(command, false, null);
   }
 
-  function showLinkEditor(button, editor) {
+  function showUrlEditor(button, editor, command) {
     const toolbar = button.closest(".pgeservicos-rich-toolbar");
 
     if (!toolbar) {
@@ -56,7 +72,7 @@
 
     popover.className = "pgeservicos-rich-link-popover";
     input.type = "url";
-    input.placeholder = "https://...";
+    input.placeholder = command === "insertImage" ? "URL da imagem" : "https://...";
     input.autocomplete = "off";
     apply.type = "button";
     apply.textContent = "Aplicar";
@@ -78,7 +94,7 @@
         selection.addRange(range);
       }
 
-      document.execCommand("createLink", false, url);
+      document.execCommand(command, false, url);
       popover.remove();
     });
 
@@ -92,6 +108,20 @@
     popover.appendChild(cancel);
     toolbar.appendChild(popover);
     input.focus();
+  }
+
+  function applyRichFormat(select) {
+    const form = select.closest("label, form");
+    const editor = form?.querySelector(".pgeservicos-rich-editor");
+    const value = select.value || "p";
+
+    if (!editor) {
+      return;
+    }
+
+    editor.focus();
+    document.execCommand("formatBlock", false, value);
+    select.value = "p";
   }
 
   function debounce(fn, delay) {
@@ -109,6 +139,68 @@
     return page?.getAttribute("data-ticket-closed") === "1";
   }
 
+  function copyActionVars(page, target) {
+    if (!page || !target) {
+      return;
+    }
+
+    const computed = window.getComputedStyle(page);
+    [
+      "--pgeservicos-action-bg",
+      "--pgeservicos-action-color",
+      "--pgeservicos-toast-bg",
+      "--pgeservicos-toast-color",
+      "--pgeservicos-scroll-btn-bg",
+      "--pgeservicos-scroll-btn-color",
+    ].forEach(function (name) {
+      const value = page.style.getPropertyValue(name) || computed.getPropertyValue(name);
+
+      if (value) {
+        target.style.setProperty(name, value.trim());
+      }
+    });
+  }
+
+  function formatFileSize(bytes) {
+    const size = Number(bytes || 0);
+
+    if (size >= 1024 * 1024) {
+      return (Math.round((size / 1024 / 1024) * 100) / 100) + " MB";
+    }
+
+    if (size >= 1024) {
+      return (Math.round((size / 1024) * 100) / 100) + " KB";
+    }
+
+    return size + " bytes";
+  }
+
+  function validateFormUploads(page, form) {
+    const maxBytes = Number(page?.getAttribute("data-upload-max-bytes") || 0);
+    const maxLabel = page?.getAttribute("data-upload-max-label") || (maxBytes > 0 ? formatFileSize(maxBytes) : "");
+
+    if (!maxBytes || maxBytes <= 0) {
+      return { ok: true };
+    }
+
+    const inputs = Array.from(form.querySelectorAll('input[type="file"]'));
+
+    for (const input of inputs) {
+      const files = Array.from(input.files || []);
+
+      for (const file of files) {
+        if (file.size > maxBytes) {
+          return {
+            ok: false,
+            message: "Arquivo muito grande. Limite máximo: " + maxLabel + ". Arquivo enviado: " + formatFileSize(file.size) + ". Arquivo: " + file.name + ". Escolha um arquivo menor antes de enviar.",
+          };
+        }
+      }
+    }
+
+    return { ok: true };
+  }
+
   function pgeservicosShowToast(type, message) {
     const normalizedType = ["success", "error", "warning", "info"].includes(type) ? type : "info";
     let region = document.querySelector("[data-pgeservicos-toast-region]");
@@ -124,6 +216,7 @@
 
     const page = document.querySelector(".pgeservicos-chamado-page");
     if (page) {
+      copyActionVars(page, region);
       ["--pgeservicos-content-left", "--pgeservicos-content-width", "--pgeservicos-toast-bottom"].forEach(function (name) {
         const value = page.style.getPropertyValue(name) || window.getComputedStyle(page).getPropertyValue(name);
         if (value) {
@@ -156,7 +249,7 @@
     window.clearTimeout(toast._pgeTimer);
     toast._pgeTimer = window.setTimeout(function () {
       toast.remove();
-    }, normalizedType === "error" ? 5600 : 3600);
+    }, normalizedType === "error" ? 7600 : 4800);
   }
 
   window.pgeservicosShowToast = pgeservicosShowToast;
@@ -236,6 +329,114 @@
 
   function closeTimelineDeleteConfirm(article) {
     article?.querySelector("[data-pgeservicos-delete-confirm]")?.remove();
+  }
+
+  function attachmentDeleteRequest(page, attachment) {
+    const actionUrl = page.getAttribute("data-action-url");
+    const ticketsId = page.getAttribute("data-tickets-id");
+    const csrf = page.getAttribute("data-csrf-token");
+
+    if (!actionUrl || !ticketsId || !csrf || !attachment) {
+      return Promise.resolve({ ok: false, message: "Configuração de remoção do anexo indisponível." });
+    }
+
+    const body = new FormData();
+    body.set("_glpi_csrf_token", csrf);
+    body.set("tickets_id", ticketsId);
+    body.set("pgeservicos_action", "delete_attachment");
+    body.set("itemtype", attachment.getAttribute("data-itemtype") || "");
+    body.set("items_id", attachment.getAttribute("data-items-id") || "");
+    body.set("documents_id", attachment.getAttribute("data-document-id") || "");
+    body.set("document_items_id", attachment.getAttribute("data-document-item-id") || "");
+
+    return fetch(actionUrl, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+      body,
+    })
+      .then((response) => response.text().then((text) => {
+        try {
+          return JSON.parse(text);
+        } catch (error) {
+          console.error("Resposta inválida ao remover anexo:", text);
+          return { ok: false, message: "Não foi possível remover o anexo. Recarregue a página e tente novamente." };
+        }
+      }))
+      .catch(() => ({ ok: false, message: "Não foi possível comunicar com o servidor." }));
+  }
+
+  function closeAttachmentDeleteConfirm(attachment) {
+    attachment?.querySelector("[data-pgeservicos-attachment-delete-confirm]")?.remove();
+  }
+
+  function showAttachmentDeleteConfirm(page, trigger) {
+    const attachment = trigger.closest("[data-pgeservicos-edit-attachment]");
+
+    if (!attachment) {
+      pgeservicosShowToast("error", "Anexo inválido.");
+      return;
+    }
+
+    closeAttachmentDeleteConfirm(attachment);
+
+    const confirm = document.createElement("div");
+    const text = document.createElement("p");
+    const actions = document.createElement("div");
+    const cancel = document.createElement("button");
+    const remove = document.createElement("button");
+
+    confirm.className = "pgeservicos-attachment-delete-confirm";
+    confirm.dataset.pgeservicosAttachmentDeleteConfirm = "";
+    confirm.setAttribute("role", "alertdialog");
+    confirm.setAttribute("aria-label", "Confirmar remoção de anexo");
+    text.textContent = "Tem certeza que deseja remover este anexo?";
+    actions.className = "pgeservicos-timeline-delete-actions";
+
+    cancel.type = "button";
+    cancel.className = "pgeservicos-chamado-secondary";
+    cancel.textContent = "Cancelar";
+    cancel.addEventListener("click", function () {
+      closeAttachmentDeleteConfirm(attachment);
+    });
+
+    remove.type = "button";
+    remove.className = "pgeservicos-chamado-danger";
+    remove.textContent = "Remover";
+    remove.addEventListener("click", function () {
+      remove.disabled = true;
+      cancel.disabled = true;
+
+      attachmentDeleteRequest(page, attachment).then((payload) => {
+        const ok = Boolean(payload.ok || payload.success);
+        pgeservicosShowToast(ok ? "success" : "error", payload.message || (ok ? "Anexo removido com sucesso." : "Não foi possível remover o anexo."));
+
+        if (ok && payload.reload !== false) {
+          window.setTimeout(function () {
+            window.location.reload();
+          }, 520);
+          return;
+        }
+
+        if (ok) {
+          attachment.remove();
+          return;
+        }
+
+        remove.disabled = false;
+        cancel.disabled = false;
+      });
+    });
+
+    actions.appendChild(cancel);
+    actions.appendChild(remove);
+    confirm.appendChild(text);
+    confirm.appendChild(actions);
+    attachment.appendChild(confirm);
+    cancel.focus();
   }
 
   function showTimelineDeleteConfirm(page, trigger) {
@@ -620,6 +821,10 @@
     lookup.classList.add("is-open");
   }
 
+  function isSlaLocked(row) {
+    return row?.getAttribute("data-sla-locked") === "1" || row?.classList.contains("is-sla-locked");
+  }
+
   function setDeadlineReadValue(row, label) {
     const read = row.querySelector("[data-pgeservicos-field-open]");
 
@@ -648,7 +853,7 @@
     title.appendChild(document.createTextNode(" Nenhum prazo definido"));
     read.appendChild(title);
 
-    if (row.classList.contains("is-editable") && !isTicketClosed(row.closest(".pgeservicos-chamado-page"))) {
+    if (row.classList.contains("is-editable") && !isSlaLocked(row) && !isTicketClosed(row.closest(".pgeservicos-chamado-page"))) {
       const hint = document.createElement("span");
       hint.className = "pgeservicos-deadline-empty-hint";
       hint.textContent = "Clique para definir uma data manual";
@@ -662,9 +867,14 @@
     const wrap = row.querySelector("[data-pgeservicos-sla-chip-wrap]");
     const assign = row.querySelector("[data-pgeservicos-sla-open]");
     const label = payload.date_label || "-";
-    const hasAgreement = Boolean(payload.agreement_id && payload.agreement_name);
+    const hasAgreement = Number(payload.agreement_id || 0) > 0;
+    const agreementName = payload.agreement_name || ((payload.agreement_label || "SLA/OLA") + " #" + payload.agreement_id);
+
+    row.classList.toggle("is-sla-locked", hasAgreement);
+    row.setAttribute("data-sla-locked", hasAgreement ? "1" : "0");
 
     if (read) {
+      read.classList.toggle("is-readonly", hasAgreement);
       setDeadlineReadValue(row, label);
     }
 
@@ -672,6 +882,15 @@
       const raw = String(payload.date_value || "").replace(" ", "T").slice(0, 16);
       control.value = raw;
       control.setAttribute("data-current-label", label);
+      control.disabled = hasAgreement;
+
+      if (hasAgreement) {
+        control.setAttribute("aria-disabled", "true");
+        control.setAttribute("data-sla-locked", "1");
+      } else {
+        control.removeAttribute("aria-disabled");
+        control.removeAttribute("data-sla-locked");
+      }
     }
 
     if (wrap) {
@@ -686,10 +905,10 @@
         chip.className = "pgeservicos-sla-chip";
         chip.setAttribute("data-pgeservicos-sla-chip", "");
         chip.dataset.agreementId = payload.agreement_id;
-        chip.title = payload.agreement_name;
+        chip.title = agreementName;
         icon.className = "ti ti-stopwatch";
         name.className = "pgeservicos-sla-chip-label";
-        name.textContent = payload.agreement_name;
+        name.textContent = agreementName;
         remove.type = "button";
         remove.className = "pgeservicos-sla-remove";
         remove.textContent = "×";
@@ -954,6 +1173,137 @@
     });
   }
 
+  function closeOpeningAuthorPickers(page, except) {
+    page.querySelectorAll("[data-pgeservicos-opening-author-picker]").forEach((picker) => {
+      if (except && picker === except) {
+        return;
+      }
+
+      const results = picker.querySelector("[data-pgeservicos-opening-author-results]");
+      if (results) {
+        results.hidden = true;
+        results.innerHTML = "";
+      }
+      picker.classList.remove("is-open");
+    });
+  }
+
+  function setupOpeningAuthorPicker(page) {
+    const endpoint = page.getAttribute("data-opening-author-search-url");
+    const csrf = page.getAttribute("data-csrf-token");
+    const ticketsId = page.getAttribute("data-tickets-id");
+
+    if (!endpoint || !csrf || !ticketsId || isTicketClosed(page)) {
+      return;
+    }
+
+    page.querySelectorAll("[data-pgeservicos-opening-author-picker]").forEach((picker) => {
+      const input = picker.querySelector("[data-pgeservicos-opening-author-input]");
+      const hidden = picker.querySelector("[data-pgeservicos-opening-author-id]");
+      const results = picker.querySelector("[data-pgeservicos-opening-author-results]");
+
+      if (!input || !hidden || !results || input.readOnly) {
+        return;
+      }
+
+      const renderMessage = function (message) {
+        results.innerHTML = "";
+        const node = document.createElement("span");
+        node.className = "pgeservicos-actor-result-message";
+        node.textContent = message;
+        results.appendChild(node);
+        results.hidden = false;
+        picker.classList.add("is-open");
+      };
+
+      const search = debounce(function () {
+        const url = new URL(endpoint, window.location.origin);
+        url.searchParams.set("q", input.value.trim());
+        url.searchParams.set("_glpi_csrf_token", csrf);
+        url.searchParams.set("tickets_id", ticketsId);
+        url.searchParams.set("_", String(Date.now()));
+
+        fetch(url.toString(), {
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+        })
+          .then((response) => response.json().catch(() => ({
+            ok: false,
+            results: [],
+            message: "Erro ao buscar usuários."
+          })))
+          .then((payload) => {
+            results.innerHTML = "";
+            const items = Array.isArray(payload.results) ? payload.results : [];
+
+            if (!payload.ok && payload.message) {
+              renderMessage(payload.message);
+              return;
+            }
+
+            if (items.length === 0) {
+              renderMessage(payload.message || "Nenhum usuário encontrado.");
+              return;
+            }
+
+            items.forEach((item) => {
+              const button = document.createElement("button");
+              const label = document.createElement("strong");
+              const meta = document.createElement("span");
+              const type = document.createElement("small");
+              button.type = "button";
+              label.textContent = item.label || "Usuário";
+              type.textContent = item.subtitle || item.login || "Usuário";
+              meta.className = "pgeservicos-actor-result-meta";
+              meta.appendChild(type);
+
+              if (item.email) {
+                const email = document.createElement("small");
+                email.textContent = item.email;
+                meta.appendChild(email);
+              }
+
+              button.appendChild(label);
+              button.appendChild(meta);
+              button.addEventListener("click", function () {
+                hidden.value = item.items_id || item.id || "";
+                input.value = item.label || "";
+                input.dataset.selectedLabel = input.value;
+                closeOpeningAuthorPickers(page);
+                input.focus();
+              });
+              results.appendChild(button);
+            });
+
+            results.hidden = false;
+            picker.classList.add("is-open");
+          })
+          .catch(() => {
+            renderMessage("Erro ao buscar usuários.");
+          });
+      }, 220);
+
+      input.addEventListener("focus", function () {
+        closeOpeningAuthorPickers(page, picker);
+        search();
+      });
+
+      input.addEventListener("input", function () {
+        if (input.value !== (input.dataset.selectedLabel || "")) {
+          hidden.value = "";
+        }
+        search();
+      });
+
+      input.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          closeOpeningAuthorPickers(page);
+        }
+      });
+    });
+  }
+
   function setupActorPicker(page) {
     const endpoint = page.getAttribute("data-actor-search-url");
     const csrf = page.getAttribute("data-csrf-token");
@@ -1204,6 +1554,13 @@
     });
 
     page.addEventListener("change", function (event) {
+      const formatSelect = event.target.closest("[data-pgeservicos-format]");
+
+      if (formatSelect) {
+        applyRichFormat(formatSelect);
+        return;
+      }
+
       const control = event.target.closest("[data-pgeservicos-field-control]");
 
       if (!control || isTicketClosed(page)) {
@@ -1213,6 +1570,12 @@
       const row = control.closest("[data-pgeservicos-field-row]");
 
       if (!row || !row.classList.contains("is-editable")) {
+        return;
+      }
+
+      if (control.matches('input[type="datetime-local"]') && isSlaLocked(row)) {
+        control.value = control.defaultValue || control.value;
+        showFieldMessage(row, "Remova a SLA/OLA antes de alterar manualmente este prazo.", "error");
         return;
       }
 
@@ -1312,7 +1675,74 @@
     page.style.setProperty("--pgeservicos-scroll-btn-color", primaryColor);
   }
 
+  function isVisibleTopElement(element, page) {
+    if (!element || (page && page.contains(element)) || element.matches(".sidebar, .navbar-vertical")) {
+      return false;
+    }
+
+    const rect = element.getBoundingClientRect();
+    const style = window.getComputedStyle(element);
+
+    return rect.width > 0
+      && rect.height > 0
+      && rect.bottom > 0
+      && rect.top <= 160
+      && style.display !== "none"
+      && style.visibility !== "hidden"
+      && ["fixed", "sticky"].includes(style.position);
+  }
+
+  function updateStickyOffset(page) {
+    const selectors = [
+      ".topbar",
+      ".navbar.fixed-top",
+      ".navbar.sticky-top",
+      "header.navbar",
+      ".layout-navbar",
+      ".navbar",
+    ];
+    const seen = new Set();
+    let top = 0;
+
+    const candidates = [];
+
+    selectors.forEach(function (selector) {
+      document.querySelectorAll(selector).forEach(function (element) {
+        if (seen.has(element) || !isVisibleTopElement(element, page)) {
+          return;
+        }
+
+        seen.add(element);
+        candidates.push(element);
+      });
+    });
+
+    candidates
+      .sort(function (first, second) {
+        return first.getBoundingClientRect().top - second.getBoundingClientRect().top;
+      })
+      .forEach(function (element) {
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+        const isFixed = style.position === "fixed";
+        const isStackedSticky = style.position === "sticky" && rect.top <= top + 3;
+
+        if (!isFixed && !isStackedSticky) {
+          return;
+        }
+
+        top = Math.max(top, rect.bottom);
+      });
+
+    if (top > 0) {
+      page.style.setProperty("--pgeservicos-sticky-top", Math.ceil(top + 4) + "px");
+    } else {
+      page.style.removeProperty("--pgeservicos-sticky-top");
+    }
+  }
+
   function updateFloatingBounds(page) {
+    updateStickyOffset(page);
     const rect = page.getBoundingClientRect();
     const viewportWidth = document.documentElement.clientWidth;
     const left = Math.max(12, rect.left);
@@ -1335,6 +1765,7 @@
     ].filter(Boolean);
 
     targets.forEach(function (target) {
+      copyActionVars(page, target);
       target.style.setProperty("--pgeservicos-content-left", left + "px");
       target.style.setProperty("--pgeservicos-content-width", width + "px");
       target.style.setProperty("--pgeservicos-toast-bottom", bottom);
@@ -1490,6 +1921,7 @@
     const scrollBottomButton = setupScrollBottomButton(page);
     window.addEventListener("scroll", function () {
       compactAt();
+      updateStickyOffset(page);
       updateScrollBottomButton(page, scrollBottomButton);
     }, { passive: true });
     window.addEventListener("resize", function () {
@@ -1501,6 +1933,10 @@
     document.addEventListener("click", function (event) {
       if (!event.target.closest("[data-pgeservicos-actor-picker]")) {
         closeActorDropdowns(page);
+      }
+
+      if (!event.target.closest("[data-pgeservicos-opening-author-picker]")) {
+        closeOpeningAuthorPickers(page);
       }
 
       if (!event.target.closest("[data-pgeservicos-field-row]")) {
@@ -1528,6 +1964,7 @@
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape") {
         closeActorDropdowns(page);
+        closeOpeningAuthorPickers(page);
         closeFieldDropdowns(page);
         closeSlaPickers(page);
         closeActionLookups(page);
@@ -1551,6 +1988,7 @@
       updateScrollBottomButton(page, scrollBottomButton);
     }, 250);
     setupActorPicker(page);
+    setupOpeningAuthorPicker(page);
     setupActionLookups(page);
     setupInlineFields(page);
 
@@ -1564,6 +2002,13 @@
       const removeActor = event.target.closest("[data-pgeservicos-remove-actor]");
       const attachmentPreview = event.target.closest("[data-pgeservicos-lightbox-src]");
       const deleteTrigger = event.target.closest("[data-pgeservicos-delete-trigger]");
+      const attachmentDeleteTrigger = event.target.closest("[data-pgeservicos-attachment-delete-trigger]");
+
+      if (attachmentDeleteTrigger) {
+        event.preventDefault();
+        showAttachmentDeleteConfirm(page, attachmentDeleteTrigger);
+        return;
+      }
 
       if (deleteTrigger) {
         event.preventDefault();
@@ -1650,6 +2095,12 @@
 
       if (fieldOpen && !fieldOpen.classList.contains("is-readonly") && !isTicketClosed(page)) {
         const row = fieldOpen.closest("[data-pgeservicos-field-row]");
+
+        if (row && isSlaLocked(row)) {
+          event.preventDefault();
+          showFieldMessage(row, "Remova a SLA/OLA antes de alterar manualmente este prazo.", "error");
+          return;
+        }
 
         if (row && row.classList.contains("is-editable")) {
           closeFieldDropdowns(page, row);
@@ -1795,6 +2246,13 @@
       event.preventDefault();
 
       if (form.classList.contains("is-submitting")) {
+        return;
+      }
+
+      const uploadValidation = validateFormUploads(page, form);
+
+      if (!uploadValidation.ok) {
+        pgeservicosShowToast("error", uploadValidation.message || "Arquivo inválido ou acima do tamanho permitido.");
         return;
       }
 

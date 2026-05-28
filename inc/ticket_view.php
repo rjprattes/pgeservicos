@@ -24,6 +24,14 @@ if (!function_exists('pgeservicos_ticket_view_decode_text')) {
     }
 }
 
+if (!function_exists('pgeservicos_ticket_view_normalize_text')) {
+    function pgeservicos_ticket_view_normalize_text($value) {
+        $text = pgeservicos_ticket_view_decode_text($value);
+
+        return str_replace(["\\r\\n", "\\n", "\\r"], ["\n", "\n", "\n"], $text);
+    }
+}
+
 if (!function_exists('pgeservicos_ticket_view_h')) {
     function pgeservicos_ticket_view_h($value) {
         return htmlspecialchars(pgeservicos_ticket_view_decode_text($value), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
@@ -32,23 +40,124 @@ if (!function_exists('pgeservicos_ticket_view_h')) {
 
 if (!function_exists('pgeservicos_ticket_view_clean_html')) {
     function pgeservicos_ticket_view_clean_html($content) {
-        $content = trim((string)$content);
+        $content = trim(pgeservicos_ticket_view_normalize_text($content));
 
         if ($content === '') {
             return '<em>Sem conteúdo informado.</em>';
         }
 
-        return Html::clean($content, false, 1);
+        $clean = Html::clean($content, false, 1);
+
+        if (str_contains($content, "\n") && !preg_match('/<(?:p|div|br|ul|ol|li|table|thead|tbody|tr|td|th|h[1-6]|blockquote|pre)\b/i', $clean)) {
+            return nl2br($clean, false);
+        }
+
+        return $clean;
     }
 }
 
 if (!function_exists('pgeservicos_ticket_view_date')) {
     function pgeservicos_ticket_view_date($date) {
-        if (empty($date)) {
+        $date = trim((string)$date);
+
+        if ($date === '' || strtoupper($date) === 'NULL') {
             return '-';
         }
 
-        return Html::convDateTime($date);
+        $timestamp = strtotime(str_replace('T', ' ', $date));
+
+        if (!$timestamp) {
+            return '-';
+        }
+
+        return date('d/m/Y H:i', $timestamp);
+    }
+}
+
+if (!function_exists('pgeservicos_ticket_view_relative_time')) {
+    function pgeservicos_ticket_view_relative_time($date) {
+        $timestamp = strtotime(str_replace('T', ' ', (string)$date));
+
+        if (!$timestamp) {
+            return '';
+        }
+
+        $diff = max(0, time() - $timestamp);
+
+        if ($diff < 60) {
+            return 'agora há pouco';
+        }
+
+        $minutes = (int)floor($diff / 60);
+
+        if ($minutes < 60) {
+            return $minutes === 1 ? '1 minuto atrás' : $minutes . ' minutos atrás';
+        }
+
+        $hours = (int)floor($minutes / 60);
+
+        if ($hours < 24) {
+            return $hours === 1 ? '1 hora atrás' : $hours . ' horas atrás';
+        }
+
+        $days = (int)floor($hours / 24);
+
+        if ($days < 30) {
+            return $days === 1 ? '1 dia atrás' : $days . ' dias atrás';
+        }
+
+        $months = (int)floor($days / 30);
+
+        if ($months < 12) {
+            return $months === 1 ? '1 mês atrás' : $months . ' meses atrás';
+        }
+
+        $years = (int)floor($months / 12);
+
+        return $years === 1 ? '1 ano atrás' : $years . ' anos atrás';
+    }
+}
+
+if (!function_exists('pgeservicos_ticket_view_last_update_summary')) {
+    function pgeservicos_ticket_view_last_update_summary(Ticket $ticket, array $timeline) {
+        $date = (string)($ticket->fields['date_mod'] ?? '');
+        $users_id = (int)($ticket->fields['users_id_lastupdater'] ?? 0);
+
+        foreach ($timeline as $item) {
+            $item_date = (string)($item['date'] ?? '');
+
+            if ($item_date !== '' && (!$date || strtotime($item_date) > strtotime($date))) {
+                $date = $item_date;
+
+                if (!empty($item['author_user_id'])) {
+                    $users_id = (int)$item['author_user_id'];
+                }
+            }
+        }
+
+        $formatted = pgeservicos_ticket_view_date($date);
+        $relative = pgeservicos_ticket_view_relative_time($date);
+        $author = $users_id > 0 ? pgeservicos_ticket_view_user_name($users_id) : '';
+
+        if ($formatted === '-' || $relative === '') {
+            return [];
+        }
+
+        $text = 'Última atualização: ' . $relative;
+        $title = 'Última atualização em ' . $formatted;
+
+        if ($author !== '') {
+            $text .= ' por ' . $author;
+            $title .= ' por ' . $author;
+        }
+
+        return [
+            'text' => $text,
+            'title' => $title,
+            'date' => $formatted,
+            'relative' => $relative,
+            'author' => $author,
+        ];
     }
 }
 
@@ -370,7 +479,7 @@ if (!function_exists('pgeservicos_ticket_view_service_level_rows')) {
             $rows[] = $config + [
                 'value' => $fields[$field] ?? '',
                 'agreement_id' => $agreement_id,
-                'agreement_name' => $agreement_name !== '-' ? $agreement_name : '',
+                'agreement_name' => $agreement_name !== '-' ? $agreement_name : ($agreement_id > 0 ? $config['agreement_label'] . ' #' . $agreement_id : ''),
             ];
         }
 
@@ -451,13 +560,21 @@ if (!function_exists('pgeservicos_ticket_view_actor_groups')) {
 
 if (!function_exists('pgeservicos_ticket_view_is_recent_date')) {
     function pgeservicos_ticket_view_is_recent_date($tickets_id, $date) {
+        static $references = [];
+
         if (empty($date)) {
             return false;
         }
 
         $tickets_id = (int)$tickets_id;
-        $reference = $_SESSION['pgeservicos_meus_chamados_seen'][$tickets_id]
-            ?? pgeservicos_get_recent_ticket_cutoff();
+
+        if (!array_key_exists($tickets_id, $references)) {
+            $states = pgeservicos_get_ticket_view_states([$tickets_id]);
+            $references[$tickets_id] = $states[$tickets_id]
+                ?? ($_SESSION['pgeservicos_meus_chamados_seen'][$tickets_id] ?? null);
+        }
+
+        $reference = $references[$tickets_id] ?: pgeservicos_get_recent_ticket_cutoff();
 
         return strtotime((string)$date) > strtotime((string)$reference);
     }
@@ -594,9 +711,21 @@ if (!function_exists('pgeservicos_ticket_view_timeline_attachments')) {
                 continue;
             }
 
+            $document_items_id = (int)($row['assocID'] ?? 0);
             $filename = trim((string)($document->fields['filename'] ?? $row['filename'] ?? ''));
             $filepath = trim((string)($document->fields['filepath'] ?? $row['filepath'] ?? ''));
             $name = trim((string)($document->fields['name'] ?? $row['name'] ?? ''));
+            $can_delete = false;
+
+            if ($document_items_id > 0) {
+                try {
+                    $document_item = new Document_Item();
+                    $can_delete = $document_item->getFromDB($document_items_id)
+                        && (bool)$document_item->can($document_items_id, DELETE);
+                } catch (Throwable $e) {
+                    $can_delete = false;
+                }
+            }
             $label = $filename !== ''
                 ? basename($filename)
                 : ($filepath !== '' ? basename($filepath) : ($name !== '' ? $name : 'Documento anexado'));
@@ -612,17 +741,78 @@ if (!function_exists('pgeservicos_ticket_view_timeline_attachments')) {
                 . '&items_id=' . $items_id;
 
             $attachments[] = [
-                'id'       => $documents_id,
-                'name'     => $label,
-                'filename' => $filename,
-                'mime'     => (string)($document->fields['mime'] ?? $row['mime'] ?? ''),
-                'size'     => $size,
-                'kind'     => pgeservicos_ticket_view_attachment_kind($filename ?: $label, $document->fields['mime'] ?? $row['mime'] ?? ''),
-                'url'      => $url
+                'id'               => $documents_id,
+                'document_item_id' => $document_items_id,
+                'name'             => $label,
+                'filename'         => $filename,
+                'mime'             => (string)($document->fields['mime'] ?? $row['mime'] ?? ''),
+                'size'             => $size,
+                'kind'             => pgeservicos_ticket_view_attachment_kind($filename ?: $label, $document->fields['mime'] ?? $row['mime'] ?? ''),
+                'url'              => $url,
+                'can_delete'       => $can_delete
             ];
         }
 
         return $attachments;
+    }
+}
+
+if (!function_exists('pgeservicos_ticket_view_render_edit_attachments')) {
+    function pgeservicos_ticket_view_render_edit_attachments(array $attachments, $itemtype, $items_id) {
+        $itemtype = (string)$itemtype;
+        $items_id = (int)$items_id;
+
+        if (empty($attachments) || $itemtype === '' || $items_id <= 0) {
+            return '';
+        }
+
+        $html = '<div class="pgeservicos-edit-attachments" aria-label="Anexos vinculados">';
+
+        foreach ($attachments as $attachment) {
+            $documents_id = (int)($attachment['id'] ?? 0);
+            $document_items_id = (int)($attachment['document_item_id'] ?? 0);
+            $name = (string)($attachment['name'] ?? 'Documento anexado');
+            $size = trim((string)($attachment['size'] ?? ''));
+            $url = (string)($attachment['url'] ?? '');
+            $kind = in_array($attachment['kind'] ?? '', ['pdf', 'image', 'file'], true) ? $attachment['kind'] : 'file';
+            $icon = $kind === 'pdf' ? 'ti-file-type-pdf' : ($kind === 'image' ? 'ti-photo' : 'ti-paperclip');
+            $meta = $size !== '' ? '<span class="pgeservicos-attachment-size">' . pgeservicos_ticket_view_h($size) . '</span>' : '';
+            $can_delete = !empty($attachment['can_delete']) && $document_items_id > 0 && $documents_id > 0;
+
+            $html .= '<div class="pgeservicos-edit-attachment" data-pgeservicos-edit-attachment'
+                . ' data-document-item-id="' . $document_items_id . '"'
+                . ' data-document-id="' . $documents_id . '"'
+                . ' data-itemtype="' . pgeservicos_ticket_view_h($itemtype) . '"'
+                . ' data-items-id="' . $items_id . '">';
+
+            if ($kind === 'image') {
+                $html .= '<button type="button" class="pgeservicos-edit-attachment__preview"'
+                    . ' data-pgeservicos-lightbox-src="' . pgeservicos_ticket_view_h($url) . '"'
+                    . ' data-pgeservicos-lightbox-title="' . pgeservicos_ticket_view_h($name) . '">'
+                    . '<i class="ti ' . pgeservicos_ticket_view_h($icon) . '" aria-hidden="true"></i>';
+            } else {
+                $attrs = $kind === 'pdf' ? ' target="_blank" rel="noopener noreferrer"' : ' rel="noopener noreferrer" download';
+                $html .= '<a class="pgeservicos-edit-attachment__preview" href="' . pgeservicos_ticket_view_h($url) . '"' . $attrs . '>'
+                    . '<i class="ti ' . pgeservicos_ticket_view_h($icon) . '" aria-hidden="true"></i>';
+            }
+
+            $html .= '<span class="pgeservicos-attachment-info">'
+                . '<span class="pgeservicos-attachment-name">' . pgeservicos_ticket_view_h($name) . '</span>'
+                . $meta
+                . '</span>';
+
+            $html .= $kind === 'image' ? '</button>' : '</a>';
+
+            if ($can_delete) {
+                $html .= '<button type="button" class="pgeservicos-edit-attachment__delete" data-pgeservicos-attachment-delete-trigger aria-label="Remover anexo ' . pgeservicos_ticket_view_h($name) . '" title="Remover anexo">'
+                    . '<i class="ti ti-trash" aria-hidden="true"></i>'
+                    . '</button>';
+            }
+
+            $html .= '</div>';
+        }
+
+        return $html . '</div>';
     }
 }
 
@@ -827,13 +1017,15 @@ if (!function_exists('pgeservicos_ticket_view_timeline')) {
 
         $opening_users_id = (int)($ticket->fields['users_id_recipient'] ?? 0);
         $opening_can_edit = (int)($ticket->fields['status'] ?? 0) !== Ticket::CLOSED
-            && $ticket->can((int)$ticket->getID(), UPDATE);
+            && $ticket->can((int)$ticket->getID(), UPDATE)
+            && (!method_exists($ticket, 'canUpdateItem') || $ticket->canUpdateItem());
 
         $items[] = [
             'kind'            => 'opening',
             'label'           => 'Abertura',
             'id'              => $tickets_id,
-            'raw_content'     => (string)($ticket->fields['content'] ?? ''),
+            'ticket_name'     => pgeservicos_ticket_view_decode_text($ticket->fields['name'] ?? ''),
+            'raw_content'     => pgeservicos_ticket_view_normalize_text($ticket->fields['content'] ?? ''),
             'solution_status' => 0,
             'author_user_id'  => $opening_users_id,
             'avatar_url'      => pgeservicos_ticket_view_user_avatar_url($opening_users_id),
@@ -843,6 +1035,7 @@ if (!function_exists('pgeservicos_ticket_view_timeline')) {
             'is_current_user' => $opening_users_id > 0 && $opening_users_id === (int)Session::getLoginUserID(),
             'is_recent'       => false,
             'can_edit'        => $opening_can_edit,
+            'opening_author_can_edit' => $opening_can_edit,
             'can_delete'      => false,
             'delete_itemtype' => '',
             'delete_id'       => 0,
@@ -863,7 +1056,7 @@ if (!function_exists('pgeservicos_ticket_view_timeline')) {
             );
             $date = $item['date_creation'] ?? $item['date'] ?? $item['date_mod'] ?? '';
             $users_id = (int)($item['users_id'] ?? 0);
-            $raw_content = (string)($item['content'] ?? '');
+            $raw_content = pgeservicos_ticket_view_normalize_text($item['content'] ?? '');
             $content = $type_info['kind'] === 'document'
                 ? pgeservicos_ticket_view_document_content($item)
                 : pgeservicos_ticket_view_clean_html($raw_content);
@@ -913,14 +1106,36 @@ if (!function_exists('pgeservicos_ticket_view_timeline')) {
             if ($type_info['kind'] === 'document') {
                 $delete_itemtype = Document_Item::getType();
                 $delete_id = (int)($item['documents_item_id'] ?? 0);
-                $can_delete = !$ticket_is_closed && $delete_id > 0 && !empty($item['_can_delete']);
+                $can_delete = false;
+
+                if (!$ticket_is_closed && $delete_id > 0) {
+                    try {
+                        $document_item = new Document_Item();
+                        $can_delete = $document_item->getFromDB($delete_id)
+                            && (bool)$document_item->can($delete_id, DELETE);
+                    } catch (Throwable $e) {
+                        $can_delete = !empty($item['_can_delete']);
+                    }
+                }
             } elseif (
                 in_array($itemtype, [ITILFollowup::getType(), ITILSolution::getType(), TicketTask::getType()], true)
                 && $items_id > 0
-                && ($timeline_item['object'] ?? null) instanceof CommonDBTM
             ) {
                 try {
-                    $can_delete = !$ticket_is_closed && (bool)$timeline_item['object']->can($items_id, DELETE);
+                    $timeline_object = $timeline_item['object'] ?? null;
+
+                    if (!$timeline_object instanceof CommonDBTM && class_exists($itemtype)) {
+                        $timeline_object = new $itemtype();
+                        $timeline_object = $timeline_object->getFromDB($items_id) ? $timeline_object : null;
+                    }
+
+                    if ($timeline_object instanceof CommonDBTM && method_exists($timeline_object, 'setParentItem')) {
+                        $timeline_object->setParentItem($ticket);
+                    }
+
+                    $can_delete = !$ticket_is_closed
+                        && $timeline_object instanceof CommonDBTM
+                        && (bool)$timeline_object->can($items_id, DELETE);
                 } catch (Throwable $e) {
                     $can_delete = false;
                 }
@@ -930,7 +1145,7 @@ if (!function_exists('pgeservicos_ticket_view_timeline')) {
                 'kind'            => $type_info['kind'],
                 'label'           => $type_info['label'],
                 'id'              => $items_id,
-                'raw_content'     => (string)($item['content'] ?? ''),
+                'raw_content'     => $raw_content,
                 'solution_status' => $type_info['kind'] === 'solution' ? (int)($item['status'] ?? 0) : 0,
                 'author_user_id'  => $users_id,
                 'avatar_url'      => pgeservicos_ticket_view_user_avatar_url($users_id),

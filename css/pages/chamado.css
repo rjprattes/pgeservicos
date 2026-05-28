@@ -13,7 +13,7 @@
 .pgeservicos-chamado-sticky {
   position: fixed;
   z-index: 1020;
-  top: var(--tblr-header-height, 56px);
+  top: var(--pgeservicos-sticky-top, var(--tblr-header-height, 56px));
   left: var(--pgeservicos-content-left, 16px);
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -592,6 +592,25 @@
   justify-content: space-between;
 }
 
+.pgeservicos-timeline-last-update {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--pgeservicos-primary-softer);
+  color: var(--pgeservicos-muted);
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.pgeservicos-timeline-last-update i {
+  flex: 0 0 auto;
+  color: var(--pgeservicos-accent-text);
+}
+
 .pgeservicos-chamado-native-link,
 .pgeservicos-chamado-link-button {
   display: inline-flex;
@@ -899,6 +918,59 @@
   overflow: auto;
 }
 
+.pgeservicos-opening-edit-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: 10px;
+}
+
+.pgeservicos-opening-edit-field {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  color: var(--pgeservicos-text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pgeservicos-opening-edit-field input {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 8px;
+  background: var(--pgeservicos-surface);
+  color: var(--pgeservicos-text);
+  outline: none;
+}
+
+.pgeservicos-opening-edit-field input:focus {
+  border-color: var(--pgeservicos-primary);
+  box-shadow: 0 0 0 3px rgba(var(--pgeservicos-primary-rgb), 0.14);
+}
+
+.pgeservicos-opening-author-picker {
+  position: relative;
+  display: block;
+}
+
+.pgeservicos-opening-author-picker.is-readonly input {
+  cursor: default;
+  background: var(--pgeservicos-bg);
+}
+
+.pgeservicos-opening-edit-description-label {
+  color: var(--pgeservicos-text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+@media (max-width: 700px) {
+  .pgeservicos-opening-edit-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
 .pgeservicos-rich-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -926,6 +998,83 @@
 .pgeservicos-rich-toolbar button:focus {
   border-color: rgba(var(--pgeservicos-primary-rgb), 0.32);
   color: var(--pgeservicos-accent-text);
+}
+
+.pgeservicos-rich-toolbar select {
+  min-width: 118px;
+  height: 30px;
+  padding: 0 28px 0 8px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 7px;
+  background: var(--pgeservicos-surface);
+  color: var(--pgeservicos-text);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.pgeservicos-rich-editor {
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
+}
+
+.pgeservicos-rich-editor :where(strong, b) {
+  display: inline;
+  color: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  line-height: inherit;
+}
+
+.pgeservicos-rich-editor :where(em, i, u, span) {
+  display: inline;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.pgeservicos-rich-editor :where(p, blockquote) {
+  margin: 0 0 0.65rem;
+}
+
+.pgeservicos-rich-editor :where(ul, ol) {
+  margin: 0.35rem 0 0.75rem 1.25rem;
+  padding-left: 1.1rem;
+}
+
+.pgeservicos-rich-editor li {
+  margin: 0.18rem 0;
+  padding-left: 0.15rem;
+}
+
+.pgeservicos-rich-editor a {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.pgeservicos-rich-editor table {
+  width: 100%;
+  margin: 0.5rem 0;
+  border-collapse: collapse;
+}
+
+.pgeservicos-rich-editor :where(th, td) {
+  min-width: 72px;
+  padding: 6px 8px;
+  border: 1px solid var(--pgeservicos-border);
+  vertical-align: top;
+}
+
+.pgeservicos-rich-editor img {
+  max-width: 100%;
+  height: auto;
+}
+
+.pgeservicos-rich-editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--pgeservicos-muted);
+  pointer-events: none;
 }
 
 .pgeservicos-chamado-action-panel label,
@@ -1875,6 +2024,19 @@
   font-weight: 700;
 }
 
+.pgeservicos-deadline-card.is-sla-locked .pgeservicos-side-read-value {
+  cursor: default;
+}
+
+.pgeservicos-deadline-card.is-sla-locked .pgeservicos-field-card__edit-icon {
+  display: none;
+}
+
+.pgeservicos-deadline-card.is-sla-locked input[type="datetime-local"] {
+  opacity: 0.65;
+  pointer-events: none;
+}
+
 .pgeservicos-chamado-action-note {
   margin: 0;
   color: var(--pgeservicos-muted);
@@ -2261,8 +2423,8 @@
 
 /* Ticket header colors stay local to the plugin; the sidebar itself is never altered. */
 .pgeservicos-chamado-page {
-  --pgeservicos-ticket-header-bg: var(--pgeservicos-current-sidebar-bg, var(--tblr-body-color));
-  --pgeservicos-ticket-header-fg: var(--pgeservicos-current-sidebar-color, var(--tblr-body-bg));
+  --pgeservicos-ticket-header-bg: var(--pgeservicos-menu-bg, var(--pgeservicos-current-sidebar-bg, var(--tblr-body-color)));
+  --pgeservicos-ticket-header-fg: var(--pgeservicos-menu-color, var(--pgeservicos-current-sidebar-color, var(--tblr-body-bg)));
   --pgeservicos-action-accent: var(--pgeservicos-primary);
   --pgeservicos-action-accent-rgb: var(--pgeservicos-primary-rgb);
   --pgeservicos-action-accent-fg: var(--pgeservicos-primary-contrast, var(--pgeservicos-on-primary));
@@ -2406,8 +2568,8 @@
 
 /* Ticket header colors stay scoped to the chamado page. */
 .pgeservicos-chamado-page {
-  --pgeservicos-ticket-header-bg: var(--pgeservicos-current-sidebar-bg, var(--tblr-body-color));
-  --pgeservicos-ticket-header-color: var(--pgeservicos-current-sidebar-color, var(--tblr-body-bg));
+  --pgeservicos-ticket-header-bg: var(--pgeservicos-menu-bg, var(--pgeservicos-current-sidebar-bg, var(--tblr-body-color)));
+  --pgeservicos-ticket-header-color: var(--pgeservicos-menu-color, var(--pgeservicos-current-sidebar-color, var(--tblr-body-bg)));
   --pgeservicos-action-bg: var(--tblr-primary, var(--pgeservicos-primary));
   --pgeservicos-action-color: var(--pgeservicos-primary-contrast, var(--tblr-btn-color-text, #fff));
   --pgeservicos-toast-bg: var(--pgeservicos-action-bg);
@@ -2931,7 +3093,10 @@
 }
 
 .pgeservicos-scroll-bottom-btn {
-  color: var(--tblr-emphasis-color, var(--tblr-body-color)) !important;
+  background: var(--pgeservicos-scroll-btn-bg);
+  color: var(--pgeservicos-scroll-btn-color);
+  opacity: 1;
+  backdrop-filter: none;
 }
 
 
@@ -3431,4 +3596,157 @@
   font-size: inherit;
   font-weight: 700;
   line-height: inherit;
+}
+
+/* Solid floating UI and editable attachments for the custom ticket screen. */
+.pgeservicos-toast-region,
+.pgeservicos-scroll-bottom-btn {
+  --pgeservicos-toast-bg: var(--pgeservicos-action-bg);
+  --pgeservicos-toast-color: var(--pgeservicos-action-color);
+  --pgeservicos-scroll-btn-bg: var(--pgeservicos-action-bg);
+  --pgeservicos-scroll-btn-color: var(--pgeservicos-action-color);
+}
+
+.pgeservicos-toast,
+.pgeservicos-toast.is-success,
+.pgeservicos-toast.is-info,
+.pgeservicos-toast.is-warning {
+  border-color: color-mix(in srgb, var(--pgeservicos-toast-color) 24%, var(--pgeservicos-toast-bg));
+  background: var(--pgeservicos-toast-bg);
+  color: var(--pgeservicos-toast-color);
+  opacity: 1;
+  backdrop-filter: none;
+}
+
+.pgeservicos-toast.is-error {
+  border-color: var(--tblr-danger, #d63939);
+  background: var(--tblr-danger, #d63939);
+  color: var(--tblr-light, #fff);
+}
+
+.pgeservicos-toast button {
+  border-color: color-mix(in srgb, currentColor 36%, transparent);
+  color: inherit;
+}
+
+.pgeservicos-scroll-bottom-btn {
+  border: 1px solid color-mix(in srgb, var(--pgeservicos-scroll-btn-color) 34%, var(--pgeservicos-scroll-btn-bg));
+  border-left-width: 5px;
+  background: var(--pgeservicos-scroll-btn-bg);
+  color: var(--pgeservicos-scroll-btn-color);
+  opacity: 1;
+  backdrop-filter: none;
+}
+
+.pgeservicos-scroll-bottom-btn:hover,
+.pgeservicos-scroll-bottom-btn:focus {
+  background: var(--pgeservicos-scroll-btn-bg);
+  color: var(--pgeservicos-scroll-btn-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pgeservicos-scroll-btn-color) 26%, transparent);
+}
+
+.pgeservicos-chamado-message-bubble.is-editing > .pgeservicos-timeline-attachments {
+  display: none;
+}
+
+.pgeservicos-edit-attachments {
+  display: grid;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.pgeservicos-edit-attachment {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 8px;
+  background: var(--tblr-card-bg, var(--pgeservicos-surface));
+}
+
+.pgeservicos-edit-attachment__preview {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  color: var(--pgeservicos-text);
+  text-align: left;
+  text-decoration: none;
+}
+
+.pgeservicos-edit-attachment__preview:hover,
+.pgeservicos-edit-attachment__preview:focus {
+  color: var(--pgeservicos-heading);
+  text-decoration: none;
+}
+
+.pgeservicos-edit-attachment__delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid color-mix(in srgb, var(--tblr-danger, #d63939) 42%, var(--pgeservicos-border));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tblr-danger, #d63939) 8%, var(--pgeservicos-surface));
+  color: var(--tblr-danger, #d63939);
+  cursor: pointer;
+}
+
+.pgeservicos-edit-attachment__delete:hover,
+.pgeservicos-edit-attachment__delete:focus {
+  border-color: var(--tblr-danger, #d63939);
+  background: var(--tblr-danger, #d63939);
+  color: var(--tblr-light, #fff);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tblr-danger, #d63939) 24%, transparent);
+}
+
+.pgeservicos-attachment-delete-confirm {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+  margin-top: 2px;
+  padding: 9px;
+  border: 1px solid color-mix(in srgb, var(--tblr-danger, #d63939) 34%, var(--pgeservicos-border));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tblr-danger, #d63939) 8%, var(--pgeservicos-surface));
+}
+
+.pgeservicos-attachment-delete-confirm p {
+  margin: 0;
+  color: var(--pgeservicos-text);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.pgeservicos-lightbox {
+  padding: min(4vw, 28px);
+  overflow: auto;
+}
+
+.pgeservicos-lightbox__frame {
+  box-sizing: border-box;
+  width: auto;
+  min-width: 0;
+  max-width: 95vw;
+  max-height: 92vh;
+  overflow: hidden;
+}
+
+.pgeservicos-lightbox__image {
+  justify-self: center;
+  width: auto;
+  height: auto;
+  max-width: min(100%, 95vw);
+  max-height: calc(90vh - 78px);
+  object-fit: contain;
+}
+
+.pgeservicos-lightbox__caption {
+  max-width: min(100%, 95vw);
 }

@@ -63,41 +63,120 @@
     return contrast(bg, dark) >= contrast(bg, light) ? "#1e293b" : "#ffffff";
   }
 
-  function findSidebar() {
-    return (
-      document.querySelector("aside.sidebar") ||
-      document.querySelector(".navbar-vertical.sidebar") ||
-      document.querySelector(".sidebar.navbar")
-    );
+  function isTransparentBackground(value) {
+    return !value || value === "rgba(0, 0, 0, 0)" || value === "transparent";
   }
 
-  function applySidebarTheme() {
-    const sidebar = findSidebar();
+  function isVisibleElement(element) {
+    if (!element) {
+      return false;
+    }
 
-    if (!sidebar) {
+    const rect = element.getBoundingClientRect();
+    const style = window.getComputedStyle(element);
+
+    return rect.width > 0
+      && rect.height > 0
+      && style.display !== "none"
+      && style.visibility !== "hidden";
+  }
+
+  function menuCandidates() {
+    const selectors = [
+      ".topbar.navbar",
+      ".topbar",
+      "nav.topbar",
+      "header.topbar",
+      "aside.sidebar",
+      ".navbar-vertical.sidebar",
+      ".sidebar.navbar",
+    ];
+    const seen = new Set();
+    const candidates = [];
+
+    selectors.forEach(function (selector) {
+      document.querySelectorAll(selector).forEach(function (element) {
+        if (!seen.has(element)) {
+          seen.add(element);
+          candidates.push(element);
+        }
+      });
+    });
+
+    return candidates;
+  }
+
+  function findMenuElement() {
+    const scored = menuCandidates()
+      .filter(isVisibleElement)
+      .map(function (element) {
+        const rect = element.getBoundingClientRect();
+        const style = window.getComputedStyle(element);
+        const background = style.backgroundColor;
+        let score = 0;
+
+        if (!isTransparentBackground(background)) {
+          score += 100;
+        }
+
+        if (element.matches(".topbar, .topbar.navbar, nav.topbar, header.topbar")) {
+          score += 40;
+        }
+
+        if (element.matches("aside.sidebar, .navbar-vertical.sidebar, .sidebar.navbar")) {
+          score += 30;
+        }
+
+        if (rect.top <= 120) {
+          score += 10;
+        }
+
+        score += Math.min(rect.width, 1200) / 1200;
+
+        return { element, score, background };
+      })
+      .filter(function (candidate) {
+        return !isTransparentBackground(candidate.background);
+      })
+      .sort(function (first, second) {
+        return second.score - first.score;
+      });
+
+    return scored.length ? scored[0].element : null;
+  }
+
+  function applyMenuTheme() {
+    const menu = findMenuElement();
+
+    if (!menu) {
       return;
     }
 
-    const sidebarStyle = window.getComputedStyle(sidebar);
-    const background = sidebarStyle.backgroundColor;
-    const color = readableTextColor(background, sidebarStyle.color);
+    const menuStyle = window.getComputedStyle(menu);
+    const background = menuStyle.backgroundColor;
+    const color = readableTextColor(background, menuStyle.color);
 
-    if (!background || background === "rgba(0, 0, 0, 0)" || background === "transparent") {
+    if (isTransparentBackground(background)) {
       return;
     }
 
     document.querySelectorAll(pageSelector).forEach(function (page) {
+      page.style.setProperty("--pgeservicos-menu-bg", background);
       page.style.setProperty("--pgeservicos-current-sidebar-bg", background);
 
       if (color) {
+        page.style.setProperty("--pgeservicos-menu-color", color);
         page.style.setProperty("--pgeservicos-current-sidebar-color", color);
       }
     });
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", applySidebarTheme);
+    document.addEventListener("DOMContentLoaded", applyMenuTheme);
   } else {
-    applySidebarTheme();
+    applyMenuTheme();
   }
+
+  window.addEventListener("resize", applyMenuTheme);
+  window.setTimeout(applyMenuTheme, 250);
 })();

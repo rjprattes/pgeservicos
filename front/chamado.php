@@ -35,6 +35,7 @@ $area_name = pgeservicos_get_ticket_area_name((int)($fields['entities_id'] ?? 0)
 $entity_name = $area_name;
 $was_updated = pgeservicos_is_ticket_updated($fields['date_mod'] ?? '', null, $tickets_id);
 $timeline = pgeservicos_ticket_view_timeline($ticket);
+$last_update_summary = pgeservicos_ticket_view_last_update_summary($ticket, $timeline);
 $details = pgeservicos_ticket_view_detail_rows($ticket);
 $service_levels = pgeservicos_ticket_view_service_level_rows($ticket);
 $actors = pgeservicos_ticket_view_actor_groups($ticket);
@@ -43,6 +44,31 @@ $native_url = ($CFG_GLPI['root_doc'] ?? '')
     . '/plugins/pgeservicos/front/abrir_chamado.php?tickets_id='
     . $tickets_id;
 $is_closed = (int)($fields['status'] ?? 0) === Ticket::CLOSED;
+$rich_toolbar = "
+                            <div class='pgeservicos-rich-toolbar' aria-label='Formatação'>
+                                <select data-pgeservicos-format aria-label='Estilo do texto'>
+                                    <option value='p'>Simples</option>
+                                    <option value='h2'>Título 2</option>
+                                    <option value='h3'>Título 3</option>
+                                    <option value='blockquote'>Citação</option>
+                                </select>
+                                <button type='button' data-pgeservicos-command='bold' title='Negrito' aria-label='Negrito'><strong>B</strong></button>
+                                <button type='button' data-pgeservicos-command='italic' title='Itálico' aria-label='Itálico'><em>I</em></button>
+                                <button type='button' data-pgeservicos-command='underline' title='Sublinhado' aria-label='Sublinhado'><span>U</span></button>
+                                <button type='button' data-pgeservicos-command='insertUnorderedList' title='Lista' aria-label='Lista'><i class='ti ti-list' aria-hidden='true'></i></button>
+                                <button type='button' data-pgeservicos-command='insertOrderedList' title='Lista numerada' aria-label='Lista numerada'><i class='ti ti-list-numbers' aria-hidden='true'></i></button>
+                                <button type='button' data-pgeservicos-command='outdent' title='Diminuir recuo' aria-label='Diminuir recuo'><i class='ti ti-indent-decrease' aria-hidden='true'></i></button>
+                                <button type='button' data-pgeservicos-command='indent' title='Aumentar recuo' aria-label='Aumentar recuo'><i class='ti ti-indent-increase' aria-hidden='true'></i></button>
+                                <button type='button' data-pgeservicos-command='justifyLeft' title='Alinhar à esquerda' aria-label='Alinhar à esquerda'><i class='ti ti-align-left' aria-hidden='true'></i></button>
+                                <button type='button' data-pgeservicos-command='justifyCenter' title='Centralizar' aria-label='Centralizar'><i class='ti ti-align-center' aria-hidden='true'></i></button>
+                                <button type='button' data-pgeservicos-command='justifyRight' title='Alinhar à direita' aria-label='Alinhar à direita'><i class='ti ti-align-right' aria-hidden='true'></i></button>
+                                <button type='button' data-pgeservicos-command='insertEmoji' data-pgeservicos-insert='🙂' title='Emoji' aria-label='Emoji'><i class='ti ti-mood-smile' aria-hidden='true'></i></button>
+                                <button type='button' data-pgeservicos-command='insertTable' title='Tabela' aria-label='Tabela'><i class='ti ti-table' aria-hidden='true'></i></button>
+                                <button type='button' data-pgeservicos-command='createLink' title='Link' aria-label='Link'><i class='ti ti-link' aria-hidden='true'></i></button>
+                                <button type='button' data-pgeservicos-command='insertImage' title='Imagem por URL' aria-label='Imagem por URL'><i class='ti ti-photo' aria-hidden='true'></i></button>
+                                <button type='button' data-pgeservicos-command='undo' title='Desfazer' aria-label='Desfazer'><i class='ti ti-arrow-back-up' aria-hidden='true'></i></button>
+                                <button type='button' data-pgeservicos-command='redo' title='Refazer' aria-label='Refazer'><i class='ti ti-arrow-forward-up' aria-hidden='true'></i></button>
+                            </div>";
 $can_update_ticket = $ticket->canUpdateItem();
 $can_update_open_ticket = $can_update_ticket && !$is_closed;
 $direct_actions = $is_closed ? [] : pgeservicos_ticket_view_action_definitions($ticket);
@@ -82,7 +108,19 @@ $root_doc = $CFG_GLPI['root_doc'] ?? '';
 $home_url = $root_doc . '/plugins/pgeservicos/front/index.php';
 $tickets_url = $root_doc . '/plugins/pgeservicos/front/meus_chamados.php';
 $action_url = $root_doc . '/plugins/pgeservicos/front/chamado_action.php';
+$document_limit = (int)($CFG_GLPI['document_max_size'] ?? 0) * 1024 * 1024;
+$php_upload_limit = class_exists('Toolbox') && method_exists('Toolbox', 'getPhpUploadSizeLimit')
+    ? (int)Toolbox::getPhpUploadSizeLimit()
+    : 0;
+$upload_limits = array_filter([$document_limit, $php_upload_limit], static function ($value) {
+    return (int)$value > 0;
+});
+$upload_max_bytes = !empty($upload_limits) ? min($upload_limits) : 0;
+$upload_max_label = $upload_max_bytes > 0 && class_exists('Toolbox')
+    ? Toolbox::getSize($upload_max_bytes)
+    : (class_exists('Document') ? Document::getMaxUploadSize() : '');
 $actor_search_url = $root_doc . '/plugins/pgeservicos/front/ajax_actor_search.php?v=' . (int)@filemtime(__DIR__ . '/ajax_actor_search.php');
+$opening_author_search_url = $root_doc . '/plugins/pgeservicos/front/ajax_opening_author_search.php?v=' . (int)@filemtime(__DIR__ . '/ajax_opening_author_search.php');
 $actor_update_url = $root_doc . '/plugins/pgeservicos/front/ajax_actor_update.php';
 $field_search_url = $root_doc . '/plugins/pgeservicos/front/ajax_ticket_field_search.php';
 $field_update_url = $root_doc . '/plugins/pgeservicos/front/ajax_ticket_field_update.php';
@@ -190,6 +228,8 @@ echo "<div class='pgeservicos-container pgeservicos-chamado-page' data-actor-sea
     . pgeservicos_ticket_view_h($action_url)
     . "' data-actor-update-url='"
     . pgeservicos_ticket_view_h($actor_update_url)
+    . "' data-opening-author-search-url='"
+    . pgeservicos_ticket_view_h($opening_author_search_url)
     . "' data-field-search-url='"
     . pgeservicos_ticket_view_h($field_search_url)
     . "' data-field-update-url='"
@@ -204,13 +244,17 @@ echo "<div class='pgeservicos-container pgeservicos-chamado-page' data-actor-sea
     . (int)$tickets_id
     . "' data-ticket-closed='"
     . ($is_closed ? '1' : '0')
+    . "' data-upload-max-bytes='"
+    . (int)$upload_max_bytes
+    . "' data-upload-max-label='"
+    . pgeservicos_ticket_view_h($upload_max_label)
     . "'>";
 
 echo "
 <header class='pgeservicos-chamado-sticky' aria-label='Resumo fixo do chamado'>
     <div class='pgeservicos-chamado-sticky-links'>
-        <a href='" . pgeservicos_ticket_view_h($tickets_url) . "'>&larr; Meus chamados</a>
-        <a href='" . pgeservicos_ticket_view_h($home_url) . "'>&larr; Portal</a>
+        <a class='pgeservicos-header-back-link' href='" . pgeservicos_ticket_view_h($tickets_url) . "'>&larr; Meus chamados</a>
+        <a class='pgeservicos-header-back-link' href='" . pgeservicos_ticket_view_h($home_url) . "'>&larr; Portal de Serviços</a>
     </div>
     <div class='pgeservicos-chamado-sticky-title'>
         <span>#" . (int)$tickets_id . "</span>
@@ -225,12 +269,12 @@ echo "
 
 <section class='pgeservicos-hero pgeservicos-chamado-hero'>
     <div class='pgeservicos-chamado-hero-main'>
-        <nav class='pgeservicos-chamado-topnav' aria-label='Navegação do chamado'>
-            <a class='pgeservicos-back-link' href='" . pgeservicos_ticket_view_h($tickets_url) . "'>
+        <nav class='pgeservicos-chamado-topnav pgeservicos-header-actions' aria-label='Navegação do chamado'>
+            <a class='pgeservicos-back-link pgeservicos-header-back-link' href='" . pgeservicos_ticket_view_h($tickets_url) . "'>
                 &larr; Meus chamados
             </a>
-            <a class='pgeservicos-back-link pgeservicos-back-link-secondary' href='" . pgeservicos_ticket_view_h($home_url) . "'>
-                &larr; Portal de Serviços
+            <a class='pgeservicos-back-link pgeservicos-back-link-secondary pgeservicos-header-back-link' href='" . pgeservicos_ticket_view_h($home_url) . "'>
+                &larr; Voltar para o Portal de Serviços
             </a>
         </nav>
         <span class='pgeservicos-chamado-kicker'>Chamado #" . (int)$tickets_id . "</span>
@@ -306,6 +350,9 @@ echo "
         <div class='pgeservicos-chamado-section-title'>
             <div>
                 <h2>Linha do tempo</h2>
+                " . (!empty($last_update_summary)
+                    ? "<p class='pgeservicos-timeline-last-update' title='" . pgeservicos_ticket_view_h($last_update_summary['title']) . "'><i class='ti ti-clock' aria-hidden='true'></i> " . pgeservicos_ticket_view_h($last_update_summary['text']) . "</p>"
+                    : '') . "
             </div>
         </div>
         <div class='pgeservicos-chamado-timeline'>";
@@ -343,6 +390,36 @@ foreach ($timeline as $item) {
     $delete_attrs = $timeline_can_delete
         ? " data-pgeservicos-delete-itemtype='" . pgeservicos_ticket_view_h($delete_itemtype) . "' data-pgeservicos-delete-id='" . $delete_id . "'"
         : '';
+    $edit_attachments_html = ($timeline_can_edit && in_array($item['kind'], ['followup', 'task', 'solution'], true))
+        ? pgeservicos_ticket_view_render_edit_attachments($item['attachments'] ?? [], $delete_itemtype, $delete_id)
+        : '';
+    $opening_edit_fields_html = '';
+    $opening_description_label = '';
+
+    if ($timeline_can_edit && $item['kind'] === 'opening') {
+        $opening_author_id = (int)($item['author_user_id'] ?? 0);
+        $opening_author_name = (string)($item['author'] ?? '');
+        $opening_title = (string)($item['ticket_name'] ?? $ticket_name ?? '');
+        $opening_author_readonly = empty($item['opening_author_can_edit']);
+
+        $opening_edit_fields_html = "
+                            <div class='pgeservicos-opening-edit-fields'>
+                                <label class='pgeservicos-opening-edit-field'>
+                                    <span>Por</span>
+                                    <span class='pgeservicos-opening-author-picker" . ($opening_author_readonly ? " is-readonly" : "") . "' data-pgeservicos-opening-author-picker>
+                                        <input type='hidden' name='opening_users_id_recipient' value='" . $opening_author_id . "' data-pgeservicos-opening-author-id>
+                                        <input type='search' value='" . pgeservicos_ticket_view_h($opening_author_name) . "' data-pgeservicos-opening-author-input data-selected-label='" . pgeservicos_ticket_view_h($opening_author_name) . "' autocomplete='off'" . ($opening_author_readonly ? " readonly" : "") . ">
+                                        <span class='pgeservicos-actor-results pgeservicos-opening-author-results' data-pgeservicos-opening-author-results hidden></span>
+                                    </span>
+                                </label>
+                                <label class='pgeservicos-opening-edit-field'>
+                                    <span>Título</span>
+                                    <input type='text' name='opening_name' value='" . pgeservicos_ticket_view_h($opening_title) . "' maxlength='255' required>
+                                </label>
+                            </div>";
+        $opening_description_label = "
+                            <label class='pgeservicos-opening-edit-description-label'>Descrição</label>";
+    }
 
     echo "
             <article class='" . pgeservicos_ticket_view_h(implode(' ', $item_classes)) . "' data-pgeservicos-timeline-item" . $delete_attrs . ">
@@ -398,17 +475,13 @@ foreach ($timeline as $item) {
                             <input type='hidden' name='timeline_type' value='" . pgeservicos_ticket_view_h($item['kind']) . "'>
                             <input type='hidden' name='timeline_id' value='" . (int)$item['id'] . "'>
                             <input type='hidden' name='content' class='pgeservicos-rich-input' value='" . pgeservicos_ticket_view_h($item['raw_content']) . "'>
-                            <div class='pgeservicos-rich-toolbar' aria-label='Formatação'>
-                                <button type='button' data-pgeservicos-command='bold'><strong>B</strong></button>
-                                <button type='button' data-pgeservicos-command='italic'><em>I</em></button>
-                                <button type='button' data-pgeservicos-command='insertUnorderedList'><i class='ti ti-list' aria-hidden='true'></i></button>
-                                <button type='button' data-pgeservicos-command='createLink'><i class='ti ti-link' aria-hidden='true'></i></button>
-                                <button type='button' data-pgeservicos-command='undo'><i class='ti ti-arrow-back-up' aria-hidden='true'></i></button>
-                                <button type='button' data-pgeservicos-command='redo'><i class='ti ti-arrow-forward-up' aria-hidden='true'></i></button>
-                            </div>
+                            " . $opening_edit_fields_html . "
+                            " . $opening_description_label . "
+                            " . $rich_toolbar . "
                             <div class='pgeservicos-rich-editor' contenteditable='true'>"
                                 . pgeservicos_ticket_view_clean_html($item['raw_content'])
                             . "</div>
+                            " . $edit_attachments_html . "
                             <input type='file' name='document'>
                             <div class='pgeservicos-chamado-form-actions'>
                                 <button type='button' class='pgeservicos-chamado-secondary' data-pgeservicos-cancel-edit>Cancelar</button>"
@@ -431,7 +504,9 @@ foreach ($timeline as $item) {
                             <input type='hidden' name='pgeservicos_action' value='solution_approval'>
                             <label>
                                 Comentário
-                                <textarea name='content' rows='3' placeholder='Informe um comentário, se necessário'></textarea>
+                                <input type='hidden' name='content' class='pgeservicos-rich-input'>
+                                " . $rich_toolbar . "
+                                <div class='pgeservicos-rich-editor' contenteditable='true' data-placeholder='Informe um comentário, se necessário'></div>
                             </label>
                             <label>
                                 Anexo
@@ -518,7 +593,9 @@ if (empty($direct_actions)) {
                         <input type='hidden' name='pgeservicos_action' value='" . pgeservicos_ticket_view_h($post_action) . "'>
                         <label>
                             " . pgeservicos_ticket_view_h($textarea_label) . "
-                            <textarea name='content' rows='4' required></textarea>
+                            <input type='hidden' name='content' class='pgeservicos-rich-input' data-pgeservicos-rich-required='1'>
+                            " . $rich_toolbar . "
+                            <div class='pgeservicos-rich-editor' contenteditable='true'></div>
                         </label>
                         <div class='pgeservicos-chamado-form-actions'>
                             <button type='button' class='pgeservicos-chamado-secondary' data-pgeservicos-close-panel>Cancelar</button>
@@ -539,7 +616,7 @@ if (empty($direct_actions)) {
                     </form>";
         } elseif ($action_key === 'document') {
             $document_create_url = $root_doc . '/front/document.form.php';
-            $document_max_upload = class_exists('Document') ? Document::getMaxUploadSize() : '';
+            $document_max_upload = $upload_max_label !== '' ? $upload_max_label : (class_exists('Document') ? Document::getMaxUploadSize() : '');
 
             echo "
                     <form method='post' enctype='multipart/form-data' action='" . pgeservicos_ticket_view_h($action_url) . "'>
@@ -587,7 +664,9 @@ if (empty($direct_actions)) {
                         </label>
                         <label>
                             Comentário da solicitação
-                            <textarea name='comment_submission' rows='4'></textarea>
+                            <input type='hidden' name='comment_submission' class='pgeservicos-rich-input'>
+                            " . $rich_toolbar . "
+                            <div class='pgeservicos-rich-editor' contenteditable='true'></div>
                         </label>
                         <label>
                             Anexo
@@ -612,14 +691,7 @@ if (empty($direct_actions)) {
                         <label>
                             Descrição
                             <input type='hidden' name='content' class='pgeservicos-rich-input'>
-                            <div class='pgeservicos-rich-toolbar' aria-label='Formatação'>
-                                <button type='button' data-pgeservicos-command='bold'><strong>B</strong></button>
-                                <button type='button' data-pgeservicos-command='italic'><em>I</em></button>
-                                <button type='button' data-pgeservicos-command='insertUnorderedList'><i class='ti ti-list' aria-hidden='true'></i></button>
-                                <button type='button' data-pgeservicos-command='createLink'><i class='ti ti-link' aria-hidden='true'></i></button>
-                                <button type='button' data-pgeservicos-command='undo'><i class='ti ti-arrow-back-up' aria-hidden='true'></i></button>
-                                <button type='button' data-pgeservicos-command='redo'><i class='ti ti-arrow-forward-up' aria-hidden='true'></i></button>
-                            </div>
+                            " . $rich_toolbar . "
                             <div class='pgeservicos-rich-editor' contenteditable='true'></div>
                         </label>
                         " . ($action_key !== 'solution'
@@ -768,7 +840,7 @@ foreach ($service_levels as $service_level) {
     $agreement_id = (int)($service_level['agreement_id'] ?? 0);
     $agreement_name = (string)($service_level['agreement_name'] ?? '');
     $agreement_label = (string)($service_level['agreement_label'] ?? 'SLA');
-    $has_agreement = $agreement_id > 0 && $agreement_name !== '';
+    $has_agreement = $agreement_id > 0;
 
     if (!empty($service_level['value'])) {
         $timestamp = strtotime((string)$service_level['value']);
@@ -790,24 +862,25 @@ foreach ($service_levels as $service_level) {
     }
 
     $has_date = $date_value !== '' && $date_label !== '-';
+    $deadline_can_edit = $can_update_open_ticket && !$has_agreement;
     $deadline_read_html = pgeservicos_ticket_view_h($date_label);
-    $deadline_read_class = '';
+    $deadline_read_class = $deadline_can_edit ? '' : ' is-readonly';
 
     if (!$has_date) {
-        $deadline_read_class = ' is-empty';
+        $deadline_read_class .= ' is-empty';
         $deadline_read_html = "<span class='pgeservicos-deadline-empty-title'><i class='ti ti-calendar-time' aria-hidden='true'></i> Nenhum prazo definido</span>";
 
-        if ($can_update_open_ticket) {
+        if ($deadline_can_edit) {
             $deadline_read_html .= "<span class='pgeservicos-deadline-empty-hint'>Clique para definir uma data manual</span>";
         }
     }
 
     echo "
-                <div class='pgeservicos-side-field pgeservicos-field-card pgeservicos-deadline-card" . ($can_update_open_ticket ? " pgeservicos-field-card--editable is-editable" : " pgeservicos-field-card--readonly") . "' data-pgeservicos-field-row data-field='" . pgeservicos_ticket_view_h($service_level['field']) . "' data-field-type='datetime' data-sla-field='" . pgeservicos_ticket_view_h($service_level['field']) . "'>
-                    <dt>" . pgeservicos_ticket_view_h($service_level['label']) . ($can_update_open_ticket ? "<span class='pgeservicos-field-card__edit-icon' aria-hidden='true'><i class='ti ti-calendar-time'></i></span>" : "") . "</dt>
+                <div class='pgeservicos-side-field pgeservicos-field-card pgeservicos-deadline-card" . ($can_update_open_ticket ? " pgeservicos-field-card--editable is-editable" : " pgeservicos-field-card--readonly") . ($has_agreement ? " is-sla-locked" : "") . "' data-pgeservicos-field-row data-field='" . pgeservicos_ticket_view_h($service_level['field']) . "' data-field-type='datetime' data-sla-field='" . pgeservicos_ticket_view_h($service_level['field']) . "' data-sla-locked='" . ($has_agreement ? "1" : "0") . "'>
+                    <dt>" . pgeservicos_ticket_view_h($service_level['label']) . ($deadline_can_edit ? "<span class='pgeservicos-field-card__edit-icon' aria-hidden='true'><i class='ti ti-calendar-time'></i></span>" : "") . "</dt>
                     <dd>
                         <span class='pgeservicos-deadline-date-row'>
-                            <button type='button' class='pgeservicos-side-read-value" . $deadline_read_class . ($can_update_open_ticket ? "" : " is-readonly") . "' data-pgeservicos-field-open>" . $deadline_read_html . "</button>
+                            <button type='button' class='pgeservicos-side-read-value" . $deadline_read_class . "' data-pgeservicos-field-open>" . $deadline_read_html . "</button>
                         </span>
                         <span class='pgeservicos-sla-row' data-pgeservicos-sla-row>
                             <span class='pgeservicos-sla-chip-wrap' data-pgeservicos-sla-chip-wrap>" . $agreement_chip . "</span>
@@ -819,7 +892,7 @@ foreach ($service_levels as $service_level) {
                             <span class='pgeservicos-sla-results' data-pgeservicos-sla-results hidden></span>
                         </span>" : "") . "
                         <span class='pgeservicos-side-edit-value'>
-                            <input type='datetime-local' name='" . pgeservicos_ticket_view_h($service_level['field']) . "' value='" . pgeservicos_ticket_view_h($date_value) . "' data-pgeservicos-field-control data-current-label='" . pgeservicos_ticket_view_h($date_label) . "'>
+                            <input type='datetime-local' name='" . pgeservicos_ticket_view_h($service_level['field']) . "' value='" . pgeservicos_ticket_view_h($date_value) . "' data-pgeservicos-field-control data-current-label='" . pgeservicos_ticket_view_h($date_label) . "'" . ($has_agreement ? " disabled aria-disabled='true' data-sla-locked='1'" : "") . ">
                         </span>
                     </dd>
                 </div>";

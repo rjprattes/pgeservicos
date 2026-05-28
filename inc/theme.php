@@ -12,7 +12,7 @@ if (!function_exists('pgeservicos_theme_read_palette_vars')) {
         $content = file_get_contents($path);
         $vars = [];
 
-        foreach (['primary', 'primary-fg', 'link-color'] as $name) {
+        foreach (['primary', 'primary-fg', 'link-color', 'mainmenu_bg', 'mainmenu_fg'] as $name) {
             if (preg_match('/\\$' . preg_quote($name, '/') . '\\s*:\\s*(#[0-9a-fA-F]{3,6})\\s*;/', $content, $match)) {
                 $vars[$name] = pgeservicos_theme_normalize_hex($match[1]);
             }
@@ -83,11 +83,19 @@ if (!function_exists('pgeservicos_theme_best_text_on')) {
 
 if (!function_exists('pgeservicos_theme_print_vars')) {
     function pgeservicos_theme_print_vars($selector = '.pgeservicos-container, .pgegestor-page') {
-        $palette = $_SESSION['glpipalette'] ?? 'auror';
+        $palette = $_SESSION['glpipalette'] ?? '';
+
+        if ($palette === '' && class_exists('Config')) {
+            $palette = (string)Config::getConfigurationValue('core', 'palette');
+        }
+
+        $palette = $palette !== '' ? $palette : 'auror';
         $vars = pgeservicos_theme_read_palette_vars($palette);
 
         $primary = $vars['primary'] ?? '#2f7ecb';
         $primary_fg = $vars['primary-fg'] ?? pgeservicos_theme_best_text_on($primary);
+        $menu_bg = $vars['mainmenu_bg'] ?? $primary;
+        $menu_fg = $vars['mainmenu_fg'] ?? pgeservicos_theme_best_text_on($menu_bg);
         $link_color = $vars['link-color'] ?? $primary;
         $surface = '#ffffff';
         $body_text = '#1e293b';
@@ -101,8 +109,10 @@ if (!function_exists('pgeservicos_theme_print_vars')) {
             . "{--pgeservicos-primary:" . $primary . ";"
             . "--pgeservicos-on-primary:" . $primary_fg . ";"
             . "--pgeservicos-accent-text:" . $accent_text . ";"
-            . "--pgeservicos-current-sidebar-bg:" . $primary . ";"
-            . "--pgeservicos-current-sidebar-color:" . $primary_fg . ";}"
+            . "--pgeservicos-menu-bg:" . $menu_bg . ";"
+            . "--pgeservicos-menu-color:" . $menu_fg . ";"
+            . "--pgeservicos-current-sidebar-bg:" . $menu_bg . ";"
+            . "--pgeservicos-current-sidebar-color:" . $menu_fg . ";}"
             . "</style>";
     }
 }

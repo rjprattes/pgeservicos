@@ -173,6 +173,18 @@ $search_results = pgeservicos_build_search_index($catalog, $CFG_GLPI['root_doc']
 $index_url = ($CFG_GLPI['root_doc'] ?? '') . '/plugins/pgeservicos/front/index.php';
 $meus_chamados_url = ($CFG_GLPI['root_doc'] ?? '') . '/plugins/pgeservicos/front/meus_chamados.php';
 $meus_chamados_updates = pgeservicos_count_user_ticket_updates();
+$active_profile_name = function_exists('pgeservicos_current_profile_name')
+    ? pgeservicos_current_profile_name()
+    : trim((string)($_SESSION['glpiactiveprofile']['name'] ?? ''));
+$active_profile_normalized = function_exists('pgeservicos_normalize_profile_name')
+    ? pgeservicos_normalize_profile_name($active_profile_name)
+    : mb_strtolower($active_profile_name, 'UTF-8');
+$meus_chamados_card_title = $active_profile_normalized === 'usuario'
+    ? 'Meus chamados'
+    : 'Chamados';
+$meus_chamados_card_description = $active_profile_normalized === 'usuario'
+    ? 'Acompanhe seus chamados e atualizações.'
+    : 'Acompanhe chamados e atualizações.';
 $search_results[] = [
     'title'       => 'Meus chamados',
     'description' => 'Acompanhe os chamados em que você está envolvido e veja atualizações recentes.',
@@ -258,8 +270,8 @@ echo "
         <span class='pgeservicos-card-icon'>
             <i class='ti ti-ticket' aria-hidden='true'></i>
         </span>
-        <strong>Meus chamados</strong>
-        <small>Acompanhe seus chamados e atualizações.</small>
+        <strong>" . pgeservicos_h($meus_chamados_card_title) . "</strong>
+        <small>" . pgeservicos_h($meus_chamados_card_description) . "</small>
         " . ($meus_chamados_updates > 0
             ? "<em>"
                 . pgeservicos_h($meus_chamados_updates)

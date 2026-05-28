@@ -1,4 +1,4 @@
-body.pgeservicos-formcreator-page {
+.pgeservicos-formcreator-page {
   --pgeservicos-fc-primary: var(--tblr-primary, #2f7ecb);
   --pgeservicos-fc-primary-rgb: var(--tblr-primary-rgb, 47, 126, 203);
   --pgeservicos-fc-primary-soft: rgba(var(--pgeservicos-fc-primary-rgb), 0.12);
@@ -13,70 +13,103 @@ body.pgeservicos-formcreator-page {
   --pgeservicos-fc-border: var(--tblr-border-color, #e5e7eb);
   --pgeservicos-fc-border-light: var(--tblr-border-color-light, #f2f3f4);
   --pgeservicos-fc-on-primary: var(--tblr-btn-color-text, #fff);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: clip;
 }
 
-body.pgeservicos-formcreator-page #page,
-body.pgeservicos-formcreator-page main {
+.pgeservicos-formcreator-page,
+.pgeservicos-formcreator-page *,
+.pgeservicos-formcreator-page *::before,
+.pgeservicos-formcreator-page *::after {
+  box-sizing: border-box;
+}
+
+.pgeservicos-formcreator-page #page,
+.pgeservicos-formcreator-page main {
   background: var(--pgeservicos-fc-bg);
 }
 
-body.pgeservicos-formcreator-page .pgeservicos-formcreator-shell {
-  width: min(1180px, calc(100vw - 32px));
+.pgeservicos-formcreator-page .pgeservicos-formcreator-shell {
+  --pgeservicos-fc-header-bg: var(
+    --pgeservicos-menu-bg,
+    var(--pgeservicos-current-sidebar-bg, var(--pgeservicos-fc-primary))
+  );
+  --pgeservicos-fc-header-color: var(
+    --pgeservicos-menu-color,
+    var(--pgeservicos-current-sidebar-color, var(--pgeservicos-fc-on-primary))
+  );
+  width: min(1180px, 100%);
+  max-width: calc(100% - 32px);
+  min-width: 0;
   margin: 24px auto 48px;
 }
 
-body.pgeservicos-formcreator-page .pgeservicos-formcreator-header {
+.pgeservicos-formcreator-page .pgeservicos-formcreator-header {
   display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   gap: 14px;
   margin-bottom: 18px;
   padding: 26px 28px;
   border-radius: 16px;
-  background: linear-gradient(
-    135deg,
-    var(--pgeservicos-fc-primary),
-    rgba(var(--pgeservicos-fc-primary-rgb), 0.78)
-  );
-  color: var(--pgeservicos-fc-on-primary);
+  background: var(--pgeservicos-fc-header-bg);
+  color: var(--pgeservicos-fc-header-color);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.14);
 }
 
-body.pgeservicos-formcreator-page .pgeservicos-formcreator-back {
+.pgeservicos-formcreator-page .pgeservicos-formcreator-back {
   display: inline-flex;
   align-items: center;
   width: fit-content;
+  max-width: 100%;
+  min-width: 0;
   padding: 8px 12px;
   border: 1px solid rgba(255, 255, 255, 0.34);
   border-radius: 8px;
-  color: var(--pgeservicos-fc-on-primary);
+  color: var(--pgeservicos-fc-header-color);
   font-size: 13px;
   font-weight: 700;
   text-decoration: none;
 }
 
-body.pgeservicos-formcreator-page .pgeservicos-formcreator-back:hover,
-body.pgeservicos-formcreator-page .pgeservicos-formcreator-back:focus {
+.pgeservicos-formcreator-page .pgeservicos-formcreator-back:hover,
+.pgeservicos-formcreator-page .pgeservicos-formcreator-back:focus {
   background: rgba(255, 255, 255, 0.14);
-  color: var(--pgeservicos-fc-on-primary);
+  color: var(--pgeservicos-fc-header-color);
   text-decoration: none;
 }
 
-body.pgeservicos-formcreator-page .pgeservicos-formcreator-header h1 {
+.pgeservicos-formcreator-page .pgeservicos-formcreator-header h1 {
   margin: 0;
-  color: var(--pgeservicos-fc-on-primary);
+  color: var(--pgeservicos-fc-header-color);
   font-size: 28px;
   font-weight: 800;
   line-height: 1.2;
 }
 
-body.pgeservicos-formcreator-page .pgeservicos-formcreator-header p {
-  max-width: 780px;
+.pgeservicos-formcreator-page .pgeservicos-formcreator-header h1,
+.pgeservicos-formcreator-page .pgeservicos-formcreator-header p,
+.pgeservicos-formcreator-page .pgeservicos-formcreator-back {
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
+}
+
+.pgeservicos-formcreator-page .pgeservicos-formcreator-header p {
+  max-width: min(780px, 100%);
   margin: 0;
-  color: var(--pgeservicos-fc-on-primary);
+  color: var(--pgeservicos-fc-header-color);
   font-size: 15px;
   line-height: 1.55;
 }
 
-body.pgeservicos-formcreator-page .pgeservicos-formcreator-card {
+.pgeservicos-formcreator-page .pgeservicos-formcreator-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 26px;
   border: 1px solid var(--pgeservicos-fc-border);
   border-radius: 14px;
@@ -84,15 +117,15 @@ body.pgeservicos-formcreator-page .pgeservicos-formcreator-card {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form {
-  max-width: none;
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   margin: 0;
   color: var(--pgeservicos-fc-text);
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
-  > .form-title.pgeservicos-formcreator-original-title {
+.pgeservicos-formcreator-original-title {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -104,7 +137,9 @@ body.pgeservicos-formcreator-page
   border: 0;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form .form_header {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .form_header {
+  max-width: 100%;
+  min-width: 0;
   margin: 0 0 18px;
   padding: 16px 18px;
   border: 1px solid var(--pgeservicos-fc-border);
@@ -112,19 +147,27 @@ body.pgeservicos-formcreator-page #plugin_formcreator_form .form_header {
   background: var(--pgeservicos-fc-primary-softer);
   color: var(--pgeservicos-fc-text);
   line-height: 1.55;
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form > ol {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) > ol {
   display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   gap: 16px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .plugin_formcreator_section {
+  max-width: 100%;
+  min-width: 0;
   overflow: hidden;
   margin: 0;
   border: 1px solid var(--pgeservicos-fc-border);
@@ -133,8 +176,8 @@ body.pgeservicos-formcreator-page
   box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .plugin_formcreator_section
   > .card-header {
   padding: 16px 18px;
@@ -142,12 +185,12 @@ body.pgeservicos-formcreator-page
   background: var(--pgeservicos-fc-border-light);
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .plugin_formcreator_section
   .card-title,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .plugin_formcreator_section
   h2 {
   margin: 0;
@@ -156,19 +199,23 @@ body.pgeservicos-formcreator-page
   font-weight: 800;
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .plugin_formcreator_section
   > .card-body {
   display: block;
+  max-width: 100%;
+  min-width: 0;
   padding: 18px;
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   [data-itemtype="PluginFormcreatorQuestion"] {
   display: inline-block;
   box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
   vertical-align: top;
   margin-bottom: 14px;
   padding: 14px;
@@ -177,16 +224,18 @@ body.pgeservicos-formcreator-page
   background: var(--pgeservicos-fc-surface);
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .plugin_formcreator_gap {
   display: inline-block;
   box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
   vertical-align: top;
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .plugin_formcreator_newRow {
   display: block;
   clear: both;
@@ -194,45 +243,55 @@ body.pgeservicos-formcreator-page
   height: 0;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form .form_field,
-body.pgeservicos-formcreator-page #plugin_formcreator_form .form-group,
-body.pgeservicos-formcreator-page #plugin_formcreator_form .mb-3 {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .form_field,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .form-group,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .mb-3,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .row,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) [class*="col-"] {
+  max-width: 100%;
+  min-width: 0;
   color: var(--pgeservicos-fc-text);
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form label {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) label {
+  max-width: 100%;
   color: var(--pgeservicos-fc-text);
   font-size: 14px;
   font-weight: 700;
   line-height: 1.4;
+  overflow-wrap: break-word;
+  word-break: normal;
+  white-space: normal;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form .required,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .required,
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .plugin_formcreator_required,
-body.pgeservicos-formcreator-page #plugin_formcreator_form label .red {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) label .red {
   color: var(--tblr-danger, #d63939);
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="text"],
-body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="email"],
-body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="number"],
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) input[type="text"],
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) input[type="email"],
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) input[type="number"],
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   input[type="password"],
-body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="search"],
-body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="url"],
-body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="date"],
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) input[type="search"],
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) input[type="url"],
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) input[type="date"],
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   input[type="datetime-local"],
-body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="time"],
-body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="file"],
-body.pgeservicos-formcreator-page #plugin_formcreator_form select,
-body.pgeservicos-formcreator-page #plugin_formcreator_form textarea,
-body.pgeservicos-formcreator-page #plugin_formcreator_form .select2-selection {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) input[type="time"],
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) input[type="file"],
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) select,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) textarea,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .select2-selection {
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 42px;
   border: 1px solid var(--pgeservicos-fc-border);
   border-radius: 8px;
@@ -241,68 +300,81 @@ body.pgeservicos-formcreator-page #plugin_formcreator_form .select2-selection {
   box-shadow: none;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form textarea {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) textarea {
   min-height: 120px;
   resize: vertical;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form .input-group,
-body.pgeservicos-formcreator-page #plugin_formcreator_form .btn-group {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .input-group,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .btn-group {
+  width: 100%;
   max-width: 100%;
   min-width: 0;
   flex-wrap: nowrap;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form .select2-container {
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
+  .input-group
+  > :not(.btn):not(button),
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
+  .btn-group
+  > :not(.btn):not(button) {
+  min-width: 0;
+}
+
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .select2-container {
+  width: 100% !important;
   max-width: 100% !important;
   min-width: 0;
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .pgeservicos-formcreator-select-with-action
   .select2-container {
   max-width: calc(100% - 42px) !important;
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .input-group
   > .select2-container {
   flex: 1 1 auto;
   width: auto !important;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form .input-group > .btn,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .input-group > .btn,
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .input-group
   > button {
   flex: 0 0 auto;
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .select2-selection__rendered,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .select2-selection__choice,
-body.pgeservicos-formcreator-page #plugin_formcreator_form option {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) option {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form input:focus,
-body.pgeservicos-formcreator-page #plugin_formcreator_form select:focus,
-body.pgeservicos-formcreator-page #plugin_formcreator_form textarea:focus,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) input:focus,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) select:focus,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) textarea:focus,
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .select2-container--focus
   .select2-selection,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .select2-container--open
   .select2-selection {
   border-color: var(--pgeservicos-fc-primary);
@@ -310,64 +382,69 @@ body.pgeservicos-formcreator-page
   outline: none;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form input:invalid,
-body.pgeservicos-formcreator-page #plugin_formcreator_form select:invalid,
-body.pgeservicos-formcreator-page #plugin_formcreator_form textarea:invalid,
-body.pgeservicos-formcreator-page #plugin_formcreator_form .is-invalid {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) input:invalid,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) select:invalid,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) textarea:invalid,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .is-invalid {
   border-color: var(--tblr-danger, #d63939);
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   input[type="checkbox"],
-body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="radio"] {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) input[type="radio"] {
   width: 18px;
   height: 18px;
   accent-color: var(--pgeservicos-fc-primary);
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   input[type="checkbox"]
   + label,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   input[type="radio"]
   + label {
   font-weight: 600;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form table {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) table {
   width: 100%;
+  max-width: 100%;
+  table-layout: auto;
   overflow: hidden;
   border: 1px solid var(--pgeservicos-fc-border);
   border-radius: 10px;
   background: var(--pgeservicos-fc-surface);
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form th {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) th {
   background: var(--pgeservicos-fc-border-light);
   color: var(--pgeservicos-fc-text);
   font-weight: 800;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form td,
-body.pgeservicos-formcreator-page #plugin_formcreator_form th {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) td,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) th {
+  max-width: 100%;
   border-color: var(--pgeservicos-fc-border);
+  overflow-wrap: break-word;
+  word-break: normal;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form .alert,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .alert,
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .message_after_redirect,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .pgeservicos-formcreator-message {
   border-radius: 10px;
   font-weight: 600;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form .center {
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .center {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
@@ -375,10 +452,10 @@ body.pgeservicos-formcreator-page #plugin_formcreator_form .center {
   flex-wrap: wrap;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form input[type="submit"],
-body.pgeservicos-formcreator-page #plugin_formcreator_form .btn-primary,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) input[type="submit"],
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .btn-primary,
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .pgeservicos-formcreator-primary-action {
   display: inline-flex;
   align-items: center;
@@ -396,41 +473,41 @@ body.pgeservicos-formcreator-page
   text-decoration: none;
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   input[type="submit"]:hover,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   input[type="submit"]:focus,
-body.pgeservicos-formcreator-page #plugin_formcreator_form .btn-primary:hover,
-body.pgeservicos-formcreator-page #plugin_formcreator_form .btn-primary:focus,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .btn-primary:hover,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .btn-primary:focus,
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .pgeservicos-formcreator-primary-action:hover,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .pgeservicos-formcreator-primary-action:focus {
   background: rgba(var(--pgeservicos-fc-primary-rgb), 0.86);
   color: var(--pgeservicos-fc-on-primary) !important;
   text-decoration: none;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form .btn-secondary,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .btn-secondary,
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .btn-outline-secondary,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   input[type="button"] {
   border-color: var(--pgeservicos-fc-border);
   background: var(--pgeservicos-fc-surface);
   color: var(--pgeservicos-fc-text) !important;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form .tox button,
-body.pgeservicos-formcreator-page #plugin_formcreator_form .tox .tox-tbtn,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .tox button,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .tox .tox-tbtn,
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .tox
   .tox-split-button {
   min-height: unset;
@@ -444,55 +521,56 @@ body.pgeservicos-formcreator-page
   font-weight: inherit;
 }
 
-body.pgeservicos-formcreator-page #plugin_formcreator_form .tox .tox-tbtn:hover,
-body.pgeservicos-formcreator-page #plugin_formcreator_form .tox .tox-tbtn:focus,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .tox .tox-tbtn:hover,
+.pgeservicos-formcreator-page :is(#plugin_formcreator_form, .pgeservicos-formcreator-form) .tox .tox-tbtn:focus,
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .tox
   .tox-split-button:hover,
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .tox
   .tox-split-button:focus {
   background: rgba(var(--pgeservicos-fc-primary-rgb), 0.08);
   color: inherit !important;
 }
 
-body.pgeservicos-formcreator-page
-  #plugin_formcreator_form
+.pgeservicos-formcreator-page
+  :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
   .pgeservicos-formcreator-focused {
   border-color: rgba(var(--pgeservicos-fc-primary-rgb), 0.42);
   box-shadow: 0 0 0 3px rgba(var(--pgeservicos-fc-primary-rgb), 0.08);
 }
 
 @media (max-width: 800px) {
-  body.pgeservicos-formcreator-page .pgeservicos-formcreator-shell {
-    width: min(100% - 20px, 100%);
+  .pgeservicos-formcreator-page .pgeservicos-formcreator-shell {
+    width: calc(100% - 20px);
+    max-width: 100%;
     margin-top: 12px;
   }
 
-  body.pgeservicos-formcreator-page .pgeservicos-formcreator-header,
-  body.pgeservicos-formcreator-page .pgeservicos-formcreator-card {
+  .pgeservicos-formcreator-page .pgeservicos-formcreator-header,
+  .pgeservicos-formcreator-page .pgeservicos-formcreator-card {
     padding: 18px;
   }
 
-  body.pgeservicos-formcreator-page .pgeservicos-formcreator-header h1 {
+  .pgeservicos-formcreator-page .pgeservicos-formcreator-header h1 {
     font-size: 23px;
   }
 
-  body.pgeservicos-formcreator-page
-    #plugin_formcreator_form
+  .pgeservicos-formcreator-page
+    :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
     .plugin_formcreator_section
     > .card-body {
     display: grid;
     grid-template-columns: 1fr;
   }
 
-  body.pgeservicos-formcreator-page
-    #plugin_formcreator_form
+  .pgeservicos-formcreator-page
+    :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
     [data-itemtype="PluginFormcreatorQuestion"],
-  body.pgeservicos-formcreator-page
-    #plugin_formcreator_form
+  .pgeservicos-formcreator-page
+    :is(#plugin_formcreator_form, .pgeservicos-formcreator-form)
     .plugin_formcreator_gap {
     width: 100% !important;
     min-width: 100% !important;

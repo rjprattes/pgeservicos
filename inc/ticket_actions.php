@@ -18,7 +18,13 @@ if (!function_exists('pgeservicos_ticket_action_redirect')) {
 
 if (!function_exists('pgeservicos_ticket_action_content')) {
     function pgeservicos_ticket_action_content($field = 'content') {
-        return trim((string)($_POST[$field] ?? ''));
+        $content = (string)($_POST[$field] ?? '');
+
+        if (function_exists('pgeservicos_ticket_view_normalize_text')) {
+            return trim(pgeservicos_ticket_view_normalize_text($content));
+        }
+
+        return trim(str_replace(["\\r\\n", "\\n", "\\r"], ["\n", "\n", "\n"], $content));
     }
 }
 
@@ -46,10 +52,117 @@ if (!function_exists('pgeservicos_ticket_action_has_upload')) {
     }
 }
 
+if (!function_exists('pgeservicos_ticket_action_upload_limit_bytes')) {
+    function pgeservicos_ticket_action_upload_limit_bytes() {
+        global $CFG_GLPI;
+
+        $document_limit = (int)($CFG_GLPI['document_max_size'] ?? 0) * 1024 * 1024;
+        $php_limit = class_exists('Toolbox') && method_exists('Toolbox', 'getPhpUploadSizeLimit')
+            ? (int)Toolbox::getPhpUploadSizeLimit()
+            : 0;
+        $limits = array_filter([$document_limit, $php_limit], static function ($value) {
+            return (int)$value > 0;
+        });
+
+        return !empty($limits) ? min($limits) : 0;
+    }
+}
+
+if (!function_exists('pgeservicos_ticket_action_format_size')) {
+    function pgeservicos_ticket_action_format_size($bytes) {
+        $bytes = (int)$bytes;
+
+        if (class_exists('Toolbox')) {
+            return Toolbox::getSize($bytes);
+        }
+
+        if ($bytes >= 1024 * 1024) {
+            return round($bytes / 1024 / 1024, 2) . ' MB';
+        }
+
+        if ($bytes >= 1024) {
+            return round($bytes / 1024, 2) . ' KB';
+        }
+
+        return $bytes . ' bytes';
+    }
+}
+
+if (!function_exists('pgeservicos_ticket_action_upload_too_large_message')) {
+    function pgeservicos_ticket_action_upload_too_large_message($filename = '', $size = 0) {
+        $limit = pgeservicos_ticket_action_upload_limit_bytes();
+        $message = 'Arquivo muito grande.';
+
+        if ($limit > 0) {
+            $message .= ' Limite máximo: ' . pgeservicos_ticket_action_format_size($limit) . '.';
+        }
+
+        if ((int)$size > 0) {
+            $message .= ' Arquivo enviado: ' . pgeservicos_ticket_action_format_size($size) . '.';
+        }
+
+        if (trim((string)$filename) !== '') {
+            $message .= ' Arquivo: ' . trim((string)$filename) . '.';
+        }
+
+        $message .= ' Escolha um arquivo menor antes de enviar.';
+
+        return $message;
+    }
+}
+
+if (!function_exists('pgeservicos_ticket_action_validate_upload')) {
+    function pgeservicos_ticket_action_validate_upload($field = 'document') {
+        if (empty($_FILES[$field])) {
+            return true;
+        }
+
+        $file = $_FILES[$field];
+        $names = is_array($file['name'] ?? null) ? $file['name'] : [$file['name'] ?? ''];
+        $sizes = is_array($file['size'] ?? null) ? $file['size'] : [$file['size'] ?? 0];
+        $errors = is_array($file['error'] ?? null) ? $file['error'] : [$file['error'] ?? UPLOAD_ERR_NO_FILE];
+        $limit = pgeservicos_ticket_action_upload_limit_bytes();
+
+        foreach ($errors as $index => $error) {
+            $error = (int)$error;
+            $name = (string)($names[$index] ?? '');
+            $size = (int)($sizes[$index] ?? 0);
+
+            if ($error === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+
+            if (in_array($error, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true) || ($limit > 0 && $size > $limit)) {
+                Session::addMessageAfterRedirect(pgeservicos_ticket_action_upload_too_large_message($name, $size), false, ERROR);
+                return false;
+            }
+
+            if ($error !== UPLOAD_ERR_OK) {
+                Session::addMessageAfterRedirect('Arquivo inválido ou acima do tamanho permitido.', false, ERROR);
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
 if (!function_exists('pgeservicos_ticket_action_attach_upload')) {
     function pgeservicos_ticket_action_attach_upload(Ticket $ticket, $itemtype, $items_id, $field = 'document') {
         if (!pgeservicos_ticket_action_has_upload($field)) {
             return true;
+        }
+
+        $itemtype = (string)$itemtype;
+        $items_id = (int)$items_id;
+
+        if ($itemtype === '' || !class_exists($itemtype) || $items_id <= 0) {
+            Session::addMessageAfterRedirect('Tipo de item inválido para anexar arquivo.', false, ERROR);
+            return false;
+        }
+
+        if (!pgeservicos_ticket_action_validate_upload($field)) {
+            return false;
         }
 
         $input = [
@@ -104,6 +217,10 @@ if (!function_exists('pgeservicos_ticket_action_add_followup')) {
             return false;
         }
 
+        if (!pgeservicos_ticket_action_validate_upload('document')) {
+            return false;
+        }
+
         $followup = new ITILFollowup();
         $input = [
             'itemtype'   => Ticket::getType(),
@@ -134,6 +251,10 @@ if (!function_exists('pgeservicos_ticket_action_add_task')) {
         $content = pgeservicos_ticket_action_content();
 
         if (!pgeservicos_ticket_action_assert_content($content)) {
+            return false;
+        }
+
+        if (!pgeservicos_ticket_action_validate_upload('document')) {
             return false;
         }
 
@@ -229,6 +350,10 @@ if (!function_exists('pgeservicos_ticket_action_add_solution')) {
             return false;
         }
 
+        if (!pgeservicos_ticket_action_validate_upload('document')) {
+            return false;
+        }
+
         if (!$ticket->canSolve()) {
             Session::addMessageAfterRedirect('Você não tem permissão para solucionar este chamado.', false, ERROR);
             return false;
@@ -265,6 +390,10 @@ if (!function_exists('pgeservicos_ticket_action_add_validation')) {
 
         if ($users_id_validate <= 0 || !$user->getFromDB($users_id_validate) || (int)($user->fields['is_deleted'] ?? 0) === 1 || (int)($user->fields['is_active'] ?? 1) === 0) {
             Session::addMessageAfterRedirect('Selecione um usuário validador válido.', false, ERROR);
+            return false;
+        }
+
+        if (!pgeservicos_ticket_action_validate_upload('document')) {
             return false;
         }
 
@@ -362,6 +491,10 @@ if (!function_exists('pgeservicos_ticket_action_add_document')) {
 
         if ($documents_id <= 0 && !$has_upload) {
             Session::addMessageAfterRedirect('Nenhum documento ou arquivo foi informado.', false, ERROR);
+            return false;
+        }
+
+        if (!pgeservicos_ticket_action_validate_upload('document')) {
             return false;
         }
 
@@ -475,6 +608,70 @@ if (!function_exists('pgeservicos_ticket_action_delete_timeline_item')) {
     }
 }
 
+if (!function_exists('pgeservicos_ticket_action_delete_attachment')) {
+    function pgeservicos_ticket_action_delete_attachment(Ticket $ticket) {
+        $itemtype = (string)($_POST['itemtype'] ?? '');
+        $items_id = (int)($_POST['items_id'] ?? 0);
+        $documents_id = (int)($_POST['documents_id'] ?? 0);
+        $document_items_id = (int)($_POST['document_items_id'] ?? 0);
+        $allowed = [
+            ITILFollowup::getType(),
+            ITILSolution::getType(),
+            TicketTask::getType()
+        ];
+
+        if ($itemtype === '' || !in_array($itemtype, $allowed, true) || !class_exists($itemtype) || $items_id <= 0 || $documents_id <= 0 || $document_items_id <= 0) {
+            Session::addMessageAfterRedirect('Anexo inválido.', false, ERROR);
+            return false;
+        }
+
+        $item = new $itemtype();
+
+        if (!$item instanceof CommonDBTM || !$item->getFromDB($items_id)) {
+            Session::addMessageAfterRedirect('Item da linha do tempo inválido.', false, ERROR);
+            return false;
+        }
+
+        if (method_exists($item, 'setParentItem')) {
+            $item->setParentItem($ticket);
+        }
+
+        if (!pgeservicos_ticket_action_timeline_item_belongs($ticket, $item, $itemtype)) {
+            Session::addMessageAfterRedirect('O anexo não pertence a este chamado.', false, ERROR);
+            return false;
+        }
+
+        $document_item = new Document_Item();
+
+        if (!$document_item->getFromDB($document_items_id)) {
+            Session::addMessageAfterRedirect('Vínculo do anexo inválido.', false, ERROR);
+            return false;
+        }
+
+        if (
+            (int)($document_item->fields['documents_id'] ?? 0) !== $documents_id
+            || (string)($document_item->fields['itemtype'] ?? '') !== $itemtype
+            || (int)($document_item->fields['items_id'] ?? 0) !== $items_id
+        ) {
+            Session::addMessageAfterRedirect('O anexo não pertence a este item.', false, ERROR);
+            return false;
+        }
+
+        if (!$document_item->can($document_items_id, DELETE)) {
+            Session::addMessageAfterRedirect('Você não tem permissão para remover este anexo.', false, ERROR);
+            return false;
+        }
+
+        if ($document_item->delete(['id' => $document_items_id])) {
+            Session::addMessageAfterRedirect('Anexo removido com sucesso.');
+            return true;
+        }
+
+        Session::addMessageAfterRedirect('Não foi possível remover o anexo.', false, ERROR);
+        return false;
+    }
+}
+
 if (!function_exists('pgeservicos_ticket_action_update_timeline')) {
     function pgeservicos_ticket_action_update_timeline(Ticket $ticket) {
         $timeline_type = preg_replace('/[^a-z_]/', '', (string)($_POST['timeline_type'] ?? ''));
@@ -482,6 +679,10 @@ if (!function_exists('pgeservicos_ticket_action_update_timeline')) {
         $content = pgeservicos_ticket_action_content();
 
         if ($timeline_id <= 0 || !pgeservicos_ticket_action_assert_content($content)) {
+            return false;
+        }
+
+        if (!pgeservicos_ticket_action_validate_upload('document')) {
             return false;
         }
 
@@ -542,8 +743,35 @@ if (!function_exists('pgeservicos_ticket_action_update_timeline')) {
 
         $current_content = trim((string)($item->fields['content'] ?? ''));
         $has_upload = pgeservicos_ticket_action_has_upload('document');
+        $opening_name = '';
+        $opening_author_id = 0;
+        $opening_author_changed = false;
 
-        if ($current_content === $content && !$has_upload) {
+        if ($timeline_type === 'opening') {
+            $opening_name = trim(pgeservicos_ticket_view_decode_text(strip_tags((string)($_POST['opening_name'] ?? ''))));
+            $current_opening_name = trim(pgeservicos_ticket_view_decode_text((string)($item->fields['name'] ?? '')));
+            $current_opening_author_id = (int)($item->fields['users_id_recipient'] ?? 0);
+            $opening_author_raw = trim((string)($_POST['opening_users_id_recipient'] ?? ''));
+            $opening_author_id = $opening_author_raw === '' ? $current_opening_author_id : (int)$opening_author_raw;
+            $opening_author_changed = $opening_author_id !== $current_opening_author_id;
+
+            if ($opening_name === '') {
+                Session::addMessageAfterRedirect('Informe o título do chamado.', false, ERROR);
+                return false;
+            }
+
+            if ($opening_author_changed) {
+                if ($opening_author_id <= 0 || !pgeservicos_ticket_action_actor_is_accessible('user', $opening_author_id, $ticket)) {
+                    Session::addMessageAfterRedirect('Usuário informado em Por é inválido ou inacessível para este chamado.', false, ERROR);
+                    return false;
+                }
+            }
+        }
+
+        $has_opening_change = $timeline_type === 'opening'
+            && ($opening_name !== $current_opening_name || $opening_author_changed);
+
+        if ($current_content === $content && !$has_upload && !$has_opening_change) {
             Session::addMessageAfterRedirect('Nenhuma alteração detectada.');
             return true;
         }
@@ -554,8 +782,20 @@ if (!function_exists('pgeservicos_ticket_action_update_timeline')) {
             '_update' => 1
         ];
 
+        if ($timeline_type === 'opening') {
+            $input['name'] = $opening_name;
+            $input['users_id_recipient'] = $opening_author_id;
+        }
+
         if ($item->update($input)) {
-            if (!pgeservicos_ticket_action_attach_upload($ticket, $item->getType(), $timeline_id)) {
+            $attachment_itemtype = [
+                'opening'  => Ticket::getType(),
+                'followup' => ITILFollowup::getType(),
+                'task'     => TicketTask::getType(),
+                'solution' => ITILSolution::getType(),
+            ][$timeline_type] ?? '';
+
+            if (!pgeservicos_ticket_action_attach_upload($ticket, $attachment_itemtype, $timeline_id)) {
                 Session::addMessageAfterRedirect('A mensagem foi atualizada, mas não foi possível anexar o arquivo enviado.', false, ERROR);
                 return false;
             }
@@ -590,6 +830,10 @@ if (!function_exists('pgeservicos_ticket_action_solution_approval')) {
 
         if (!$ticket->canApprove()) {
             Session::addMessageAfterRedirect('Você não tem permissão para aprovar ou reprovar a solução.', false, ERROR);
+            return false;
+        }
+
+        if (!pgeservicos_ticket_action_validate_upload('document')) {
             return false;
         }
 
@@ -981,6 +1225,8 @@ if (!function_exists('pgeservicos_ticket_action_handle')) {
                 return pgeservicos_ticket_action_add_document($ticket);
             case 'delete_timeline_item':
                 return pgeservicos_ticket_action_delete_timeline_item($ticket);
+            case 'delete_attachment':
+                return pgeservicos_ticket_action_delete_attachment($ticket);
             case 'update_timeline':
                 return pgeservicos_ticket_action_update_timeline($ticket);
             case 'update_details':

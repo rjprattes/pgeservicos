@@ -51,9 +51,15 @@ if (!is_array($catalog) || !isset($catalog[$area_key])) {
 
     echo "
     <div class='pgeservicos-service-page'>
-        <a class='pgeservicos-back-link' href='" . pgeservicos_h($home_url) . "'>&larr; Voltar para o Portal de Serviços</a>
-        <h1>Área não encontrada</h1>
-        <p>A área solicitada não foi localizada no catálogo de serviços.</p>
+        <div class='pgeservicos-service-header'>
+            <div class='pgeservicos-header-actions'>
+                <a class='pgeservicos-header-back-link' href='" . pgeservicos_h($home_url) . "'>
+                    &larr; Voltar para o Portal de Serviços
+                </a>
+            </div>
+            <h1>Área não encontrada</h1>
+            <p>A área solicitada não foi localizada no catálogo de serviços.</p>
+        </div>
     </div>
     ";
 
@@ -73,13 +79,14 @@ $home_url = ($CFG_GLPI['root_doc'] ?? '') . "/plugins/pgeservicos/front/index.ph
 
 echo "
 <section class='pgeservicos-hero'>
+    <div class='pgeservicos-header-actions'>
+        <a class='pgeservicos-header-back-link' href='" . pgeservicos_h($home_url) . "'>
+            &larr; Voltar para o Portal de Serviços
+        </a>
+    </div>
     <h1>{$hero_title}</h1>
     <p>{$description}</p>
 </section>
-";
-
-echo "
-<a class='pgeservicos-back-link' href='" . pgeservicos_h($home_url) . "'>&larr; Voltar para o Portal de Serviços</a>
 ";
 
 $is_formcreator_area = (($area['dynamic_source'] ?? '') === 'formcreator');

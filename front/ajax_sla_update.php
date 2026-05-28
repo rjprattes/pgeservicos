@@ -51,7 +51,7 @@ function pgeservicos_sla_update_payload(Ticket $ticket, array $config) {
         'date_value' => $ticket->fields[$field] ?? '',
         'date_label' => pgeservicos_ticket_view_date($ticket->fields[$field] ?? ''),
         'agreement_id' => $agreement_id,
-        'agreement_name' => $agreement_name !== '-' ? $agreement_name : '',
+        'agreement_name' => $agreement_name !== '-' ? $agreement_name : ($agreement_id > 0 ? $config['agreement_label'] . ' #' . $agreement_id : ''),
         'agreement_label' => $config['agreement_label'],
     ];
 }
@@ -158,6 +158,8 @@ try {
 } catch (Throwable $e) {
     pgeservicos_sla_update_response(['ok' => false, 'message' => 'Não foi possível atualizar a SLA/OLA.'], 500);
 }
+
+pgeservicos_mark_ticket_seen($tickets_id);
 
 $updated_ticket = pgeservicos_ticket_view_get_ticket($tickets_id);
 

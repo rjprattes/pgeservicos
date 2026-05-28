@@ -53,9 +53,15 @@ $home_url = ($CFG_GLPI['root_doc'] ?? '') . "/plugins/pgeservicos/front/index.ph
 if (!is_array($catalog) || !isset($catalog[$area_key])) {
     echo "
     <div class='pgeservicos-service-page'>
-        <a class='pgeservicos-back-link' href='" . pgeservicos_h($home_url) . "'>&larr; Voltar para o Portal de Serviços</a>
-        <h1>Área não encontrada</h1>
-        <p>A área solicitada não foi localizada no catálogo de serviços.</p>
+        <div class='pgeservicos-service-header'>
+            <div class='pgeservicos-header-actions'>
+                <a class='pgeservicos-header-back-link' href='" . pgeservicos_h($home_url) . "'>
+                    &larr; Voltar para o Portal de Serviços
+                </a>
+            </div>
+            <h1>Área não encontrada</h1>
+            <p>A área solicitada não foi localizada no catálogo de serviços.</p>
+        </div>
     </div>
     ";
 
@@ -79,9 +85,18 @@ if ($is_formcreator_area && $category_key !== '') {
     if (!$fc_catalog['available'] || !isset($fc_catalog['categories'][$category_id])) {
         echo "
         <div class='pgeservicos-service-page'>
-	    <a class='pgeservicos-back-link' href='" . pgeservicos_h($area_url) . "'>&larr; Voltar para " . pgeservicos_h($area['title'] ?? 'Área') . "</a>
-            <h1>Categoria não encontrada</h1>
-            <p>A categoria solicitada não foi localizada ou não possui formulários ativos.</p>
+            <div class='pgeservicos-service-header'>
+                <div class='pgeservicos-header-actions'>
+                    <a class='pgeservicos-header-back-link' href='" . pgeservicos_h($area_url) . "'>
+                        &larr; Voltar para " . pgeservicos_h($area['title'] ?? 'Área') . "
+                    </a>
+                    <a class='pgeservicos-header-back-link' href='" . pgeservicos_h($home_url) . "'>
+                        &larr; Voltar para o Portal de Serviços
+                    </a>
+                </div>
+                <h1>Categoria não encontrada</h1>
+                <p>A categoria solicitada não foi localizada ou não possui formulários ativos.</p>
+            </div>
         </div>
         ";
 
@@ -94,13 +109,19 @@ if ($is_formcreator_area && $category_key !== '') {
 
     echo "
     <section class='pgeservicos-hero'>
+        <div class='pgeservicos-header-actions'>
+            <a class='pgeservicos-header-back-link' href='" . pgeservicos_h($area_url) . "'>
+                &larr; Voltar para " . pgeservicos_h($area['title'] ?? 'Área') . "
+            </a>
+            <a class='pgeservicos-header-back-link' href='" . pgeservicos_h($home_url) . "'>
+                &larr; Voltar para o Portal de Serviços
+            </a>
+        </div>
         <h1>" . pgeservicos_h($category['name']) . "</h1>
         <p>
             Formulários disponíveis para abertura de solicitações relacionadas a esta categoria.
         </p>
     </section>
-
-    <a class='pgeservicos-back-link' href='" . pgeservicos_h($area_url) . "'>&larr; Voltar para Serviços de Informática</a>
 
     <h2 class='pgeservicos-section-title'>Formulários disponíveis</h2>
     <p class='pgeservicos-subtitle'>
@@ -147,9 +168,18 @@ if ($is_formcreator_area && $category_key !== '') {
 if (!isset($area['services']) || !is_array($area['services']) || !isset($area['services'][$service_key])) {
     echo "
     <div class='pgeservicos-service-page'>
-        <a class='pgeservicos-back-link' href='" . pgeservicos_h($area_url) . "'>&larr; Voltar para " . pgeservicos_h($area['title'] ?? 'Área') . "</a>
-        <h1>Serviço não encontrado</h1>
-        <p>O serviço solicitado não foi localizado no catálogo desta área.</p>
+        <div class='pgeservicos-service-header'>
+            <div class='pgeservicos-header-actions'>
+                <a class='pgeservicos-header-back-link' href='" . pgeservicos_h($area_url) . "'>
+                    &larr; Voltar para " . pgeservicos_h($area['title'] ?? 'Área') . "
+                </a>
+                <a class='pgeservicos-header-back-link' href='" . pgeservicos_h($home_url) . "'>
+                    &larr; Voltar para o Portal de Serviços
+                </a>
+            </div>
+            <h1>Serviço não encontrado</h1>
+            <p>O serviço solicitado não foi localizado no catálogo desta área.</p>
+        </div>
     </div>
     ";
 
@@ -170,7 +200,10 @@ $request       = pgeservicos_h($service['request'] ?? 'Registre a solicitação 
 echo "
 <div class='pgeservicos-service-page pgeservicos-area-{$area_color}'>
     <div class='pgeservicos-service-header'>
-        <a class='pgeservicos-back-link' href='" . pgeservicos_h($area_url) . "'>&larr; Voltar para {$area_title}</a>
+        <div class='pgeservicos-header-actions'>
+            <a class='pgeservicos-header-back-link' href='" . pgeservicos_h($area_url) . "'>&larr; Voltar para {$area_title}</a>
+            <a class='pgeservicos-header-back-link' href='" . pgeservicos_h($home_url) . "'>&larr; Voltar para o Portal de Serviços</a>
+        </div>
 
         <div class='pgeservicos-badge'>{$category}</div>
 

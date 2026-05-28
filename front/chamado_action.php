@@ -53,6 +53,7 @@ function pgeservicos_chamado_action_success_message($action) {
         'trash_ticket' => 'Chamado enviado para a lixeira.',
         'update_timeline' => 'Atualização salva.',
         'delete_timeline_item' => 'Item excluído com sucesso.',
+        'delete_attachment' => 'Anexo removido com sucesso.',
     ];
 
     return $messages[$action] ?? 'Operação concluída.';
@@ -129,6 +130,10 @@ try {
 
 $glpi_messages = $is_ajax ? pgeservicos_chamado_action_consume_glpi_messages() : [];
 $ajax_message = $glpi_messages[0] ?? pgeservicos_chamado_action_success_message($action);
+
+if (!empty($result)) {
+    pgeservicos_mark_ticket_seen($tickets_id);
+}
 
 if ($result === 'tickets_list') {
     $redirect = ($CFG_GLPI['root_doc'] ?? '') . '/plugins/pgeservicos/front/meus_chamados.php';

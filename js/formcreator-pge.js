@@ -1,16 +1,94 @@
 (function () {
   "use strict";
 
+  var initialized = false;
+
+  function isDebugEnabled() {
+    return new URLSearchParams(window.location.search).get("pgeservicos_debug") === "1";
+  }
+
+  function debug() {
+    if (!isDebugEnabled() || !window.console || typeof window.console.info !== "function") {
+      return;
+    }
+
+    window.console.info.apply(window.console, ["PGE Serviços Formcreator:"].concat(Array.prototype.slice.call(arguments)));
+  }
+
+  debug("script carregado", window.location.href);
+
+  function getCurrentFormId() {
+    var params = new URLSearchParams(window.location.search);
+    var idFromUrl = params.get("id");
+
+    if (idFromUrl) {
+      return idFromUrl;
+    }
+
+    var form = document.querySelector(
+      "form#plugin_formcreator_form.plugin_formcreator_form",
+    ) || document.querySelector("form.plugin_formcreator_form");
+
+    return form ? form.getAttribute("data-id") || "" : "";
+  }
+
+  function rememberPortalContext(formId) {
+    try {
+      window.sessionStorage.setItem(
+        "pgeservicosFormcreatorPortalFormId",
+        String(formId || ""),
+      );
+    } catch (error) {
+      // Storage can be blocked; the URL marker is enough for the first load.
+    }
+  }
+
+  function hasRememberedPortalContext(formId) {
+    try {
+      return formId
+        && window.sessionStorage.getItem("pgeservicosFormcreatorPortalFormId") === String(formId);
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function isPortalFormDisplayPage() {
+    var params = new URLSearchParams(window.location.search);
+    var formId = getCurrentFormId();
+    var hasPortalMarker = params.get("pgeservicos_portal") === "1";
+    var hasStoredMarker = hasRememberedPortalContext(formId);
+
+    debug("contexto", {
+      formId: formId,
+      hasPortalMarker: hasPortalMarker,
+      hasStoredMarker: hasStoredMarker,
+    });
+
+    if (hasPortalMarker) {
+      rememberPortalContext(formId);
+      return true;
+    }
+
+    return hasStoredMarker;
+  }
+
   function isFormCreatorDisplayPage() {
-    return (
-      window.location.pathname.indexOf(
-        "/plugins/formcreator/front/formdisplay.php",
-      ) !== -1 ||
+    var hasFormcreatorRoute = window.location.pathname.indexOf(
+      "/plugins/formcreator/front/formdisplay.php",
+    ) !== -1;
+    var hasFormcreatorForm =
       document.querySelector(
         "form#plugin_formcreator_form.plugin_formcreator_form",
       ) !== null ||
-      document.querySelector('form[action*="formdisplay.php"]') !== null
-    );
+      document.querySelector("form.plugin_formcreator_form") !== null ||
+      document.querySelector('form[action*="formdisplay.php"]') !== null;
+
+    debug("detecção", {
+      hasFormcreatorRoute: hasFormcreatorRoute,
+      hasFormcreatorForm: hasFormcreatorForm,
+    });
+
+    return (hasFormcreatorRoute || hasFormcreatorForm) && isPortalFormDisplayPage();
   }
 
   function getRootDoc() {
@@ -21,12 +99,12 @@
     return "";
   }
 
-  function getFormTitle(form) {
-    var title = form.querySelector(".form-title");
+  function getFormTitleElement(form) {
+    return form.querySelector(".form-title") || document.querySelector("h1");
+  }
 
-    if (!title) {
-      title = document.querySelector("h1");
-    }
+  function getFormTitle(form) {
+    var title = getFormTitleElement(form);
 
     if (!title) {
       return "Solicitação de Serviço";
@@ -35,6 +113,162 @@
     return (
       title.textContent.replace(/\s+/g, " ").trim() || "Solicitação de Serviço"
     );
+  }
+
+
+  function parseRgb(value) {
+    var match = String(value || "").match(/rgba?\(([^)]+)\)/i);
+
+    if (!match) {
+      return null;
+    }
+
+    var channels = match[1]
+      .split(",")
+      .slice(0, 3)
+      .map(function (part) {
+        return Number.parseFloat(part.trim());
+      });
+
+    return channels.length === 3 && channels.every(Number.isFinite)
+      ? channels
+      : null;
+  }
+
+  function luminance(rgb) {
+    var linear = rgb.map(function (channel) {
+      var value = channel / 255;
+      return value <= 0.03928
+        ? value / 12.92
+        : Math.pow((value + 0.055) / 1.055, 2.4);
+    });
+
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+  }
+
+  function contrast(first, second) {
+    var lighter = Math.max(luminance(first), luminance(second));
+    var darker = Math.min(luminance(first), luminance(second));
+
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  function readableTextColor(background, candidate) {
+    var bg = parseRgb(background);
+
+    if (!bg) {
+      return candidate || "";
+    }
+
+    var parsedCandidate = parseRgb(candidate);
+
+    if (parsedCandidate && contrast(bg, parsedCandidate) >= 4.5) {
+      return candidate;
+    }
+
+    var dark = [30, 41, 59];
+    var light = [255, 255, 255];
+
+    return contrast(bg, dark) >= contrast(bg, light) ? "#1e293b" : "#ffffff";
+  }
+
+  function isTransparentBackground(value) {
+    return !value || value === "rgba(0, 0, 0, 0)" || value === "transparent";
+  }
+
+  function isVisibleElement(element) {
+    if (!element) {
+      return false;
+    }
+
+    var rect = element.getBoundingClientRect();
+    var style = window.getComputedStyle(element);
+
+    return rect.width > 0
+      && rect.height > 0
+      && style.display !== "none"
+      && style.visibility !== "hidden";
+  }
+
+  function findMenuElement() {
+    var selectors = [
+      ".topbar.navbar",
+      ".topbar",
+      "nav.topbar",
+      "header.topbar",
+      "aside.sidebar",
+      ".navbar-vertical.sidebar",
+      ".sidebar.navbar",
+    ];
+    var seen = [];
+    var candidates = [];
+
+    selectors.forEach(function (selector) {
+      document.querySelectorAll(selector).forEach(function (element) {
+        if (seen.indexOf(element) === -1) {
+          seen.push(element);
+          candidates.push(element);
+        }
+      });
+    });
+
+    candidates = candidates
+      .filter(isVisibleElement)
+      .map(function (element) {
+        var rect = element.getBoundingClientRect();
+        var style = window.getComputedStyle(element);
+        var background = style.backgroundColor;
+        var score = 0;
+
+        if (!isTransparentBackground(background)) {
+          score += 100;
+        }
+
+        if (element.matches(".topbar, .topbar.navbar, nav.topbar, header.topbar")) {
+          score += 40;
+        }
+
+        if (element.matches("aside.sidebar, .navbar-vertical.sidebar, .sidebar.navbar")) {
+          score += 30;
+        }
+
+        if (rect.top <= 120) {
+          score += 10;
+        }
+
+        score += Math.min(rect.width, 1200) / 1200;
+
+        return { element: element, score: score, background: background };
+      })
+      .filter(function (candidate) {
+        return !isTransparentBackground(candidate.background);
+      })
+      .sort(function (first, second) {
+        return second.score - first.score;
+      });
+
+    return candidates.length ? candidates[0].element : null;
+  }
+
+  function applyMenuTheme(shell) {
+    var menu = findMenuElement();
+
+    if (!shell || !menu) {
+      return;
+    }
+
+    var menuStyle = window.getComputedStyle(menu);
+    var background = menuStyle.backgroundColor;
+    var color = readableTextColor(background, menuStyle.color);
+
+    if (isTransparentBackground(background)) {
+      return;
+    }
+
+    shell.style.setProperty("--pgeservicos-menu-bg", background);
+    shell.style.setProperty("--pgeservicos-menu-color", color);
+    shell.style.setProperty("--pgeservicos-current-sidebar-bg", background);
+    shell.style.setProperty("--pgeservicos-current-sidebar-color", color);
   }
 
   function createHeader(title) {
@@ -61,25 +295,32 @@
   }
 
   function wrapForm(form, title) {
-    if (form.closest(".pgeservicos-formcreator-shell")) {
-      return;
+    var existingShell = form.closest(".pgeservicos-formcreator-shell");
+
+    if (existingShell) {
+      return existingShell.closest(".pgeservicos-formcreator-page") || existingShell;
     }
 
+    var page = document.createElement("div");
     var shell = document.createElement("div");
     var card = document.createElement("div");
     var parent = form.parentNode;
 
+    page.className = "pgeservicos-formcreator-page";
     shell.className = "pgeservicos-formcreator-shell";
     card.className = "pgeservicos-formcreator-card";
 
-    parent.insertBefore(shell, form);
+    parent.insertBefore(page, form);
+    page.appendChild(shell);
     shell.appendChild(createHeader(title));
     shell.appendChild(card);
     card.appendChild(form);
+
+    return page;
   }
 
   function markOriginalTitle(form) {
-    var title = form.querySelector(".form-title");
+    var title = getFormTitleElement(form);
 
     if (title) {
       title.classList.add("pgeservicos-formcreator-original-title");
@@ -566,37 +807,93 @@
 
   function init() {
     try {
-      if (!isFormCreatorDisplayPage()) {
-        return;
+      if (initialized || !isFormCreatorDisplayPage()) {
+        return initialized;
       }
 
       var form =
         document.querySelector(
           "form#plugin_formcreator_form.plugin_formcreator_form",
-        ) || document.querySelector('form[action*="formdisplay.php"]');
+        ) ||
+        document.querySelector("form.plugin_formcreator_form") ||
+        document.querySelector('form[action*="formdisplay.php"]');
 
       if (!form) {
-        return;
+        debug("formulário não encontrado ainda");
+        return false;
       }
 
+      debug("formulário encontrado", {
+        id: form.id || "",
+        className: form.className || "",
+        dataId: form.getAttribute("data-id") || "",
+      });
+
+      initialized = true;
       var title = getFormTitle(form);
 
-      document.body.classList.add("pgeservicos-formcreator-page");
+      form.classList.add("pgeservicos-formcreator-form");
       markOriginalTitle(form);
-      wrapForm(form, title);
+      var page = wrapForm(form, title);
+      debug("wrapper aplicado", {
+        hasPage: !!page,
+        hasCustomPage: !!document.querySelector(".pgeservicos-formcreator-page"),
+        hasCustomForm: form.classList.contains("pgeservicos-formcreator-form"),
+      });
+      applyMenuTheme(page);
+      window.setTimeout(function () {
+        applyMenuTheme(page);
+      }, 250);
+      window.addEventListener("resize", function () {
+        applyMenuTheme(page);
+      });
       enhanceSections(form);
       enhanceButtons(form);
       enhanceSelectActions(form);
       enhanceFocus(form);
       enhanceMasks(form);
       enhanceMessages(form);
+
+      return true;
     } catch (error) {
       console.warn(
         "PGE Serviços: não foi possível aprimorar o formulário do Form Creator.",
         error,
       );
+      return false;
     }
   }
 
-  document.addEventListener("DOMContentLoaded", init);
+  function scheduleInit() {
+    if (init()) {
+      return;
+    }
+
+    debug("aguardando formulário via MutationObserver");
+
+    if (typeof MutationObserver !== "function") {
+      return;
+    }
+
+    var observer = new MutationObserver(function () {
+      if (init()) {
+        observer.disconnect();
+      }
+    });
+
+    observer.observe(document.documentElement, {
+      childList: true,
+      subtree: true,
+    });
+
+    window.setTimeout(function () {
+      observer.disconnect();
+    }, 5000);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", scheduleInit);
+  } else {
+    scheduleInit();
+  }
 })();

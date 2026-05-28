@@ -1853,6 +1853,15 @@ $glpi_csrf_token = Session::getNewCSRFToken(true);
 $page_h1 = $is_edit ? 'Editar reserva' : 'Nova reserva';
 $submit_label = $is_edit ? 'Alterar reserva' : 'Criar reserva';
 $submit_icon = $is_edit ? 'ti ti-edit' : 'ti ti-device-floppy';
+$portal_link = ($CFG_GLPI['root_doc'] ?? '') . '/plugins/pgeservicos/front/index.php';
+$return_month_source = (string)($form['begin'] ?? $date);
+$return_month = preg_match('/^\d{4}-\d{2}/', $return_month_source)
+    ? substr($return_month_source, 0, 7)
+    : date('Y-m');
+$context_back_link = $selected_reservationitems_id > 0
+    ? pgegestor_get_calendar_redirect_url($selected_reservationitems_id, $return_month, $return_calendar)
+    : (($CFG_GLPI['root_doc'] ?? '') . '/plugins/pgeservicos/front/reservas.php');
+$context_back_label = $selected_reservationitems_id > 0 ? '&larr; Calendário' : '&larr; Reservas';
 
 Html::header(
     $is_edit ? 'Reservas de Salas - Editar Reserva' : 'Reservas de Salas - Nova Reserva',
@@ -1877,6 +1886,10 @@ pgeservicos_theme_print_sidebar_sync_script($CFG_GLPI['root_doc'] ?? '', $asset_
 echo "<div class='pgegestor-page'>";
 echo "<div class='pgegestor-card'>";
 echo "<div class='pgegestor-form-header'>";
+echo "<div class='pgeservicos-header-actions'>";
+echo "<a class='pgeservicos-header-back-link' href='" . pgegestor_h($context_back_link) . "'>" . $context_back_label . "</a>";
+echo "<a class='pgeservicos-header-back-link' href='" . pgegestor_h($portal_link) . "'>&larr; Voltar para o Portal de Serviços</a>";
+echo "</div>";
 echo "<h1>" . pgegestor_h($page_h1) . "</h1>";
 echo "<p class='pgegestor-muted'>"
     . ($is_edit
@@ -2063,10 +2076,6 @@ if ($is_edit) {
     echo "<i class='ti ti-trash'></i> Excluir reserva";
     echo "</button>";
 }
-
-echo "<a class='btn btn-secondary' href='javascript:history.back();'>";
-echo "<i class='ti ti-arrow-left'></i> Voltar";
-echo "</a>";
 
 $save_disabled = (($is_edit && (!$can_update_reservation || $past_locked)) || (!$is_edit && !$can_create_reservation));
 

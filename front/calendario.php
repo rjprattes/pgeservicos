@@ -373,18 +373,19 @@ $prev_link = $CFG_GLPI['root_doc'] . '/plugins/pgeservicos/front/calendario.php?
 $today_link = $CFG_GLPI['root_doc'] . '/plugins/pgeservicos/front/calendario.php?' . http_build_query($base_params + ['month' => $today_month]);
 $next_link = $CFG_GLPI['root_doc'] . '/plugins/pgeservicos/front/calendario.php?' . http_build_query($base_params + ['month' => $next_month]);
 $back_link = $CFG_GLPI['root_doc'] . '/plugins/pgeservicos/front/reservas.php';
+$portal_link = $CFG_GLPI['root_doc'] . '/plugins/pgeservicos/front/index.php';
 $full_calendar_link = $CFG_GLPI['root_doc']
     . '/plugins/pgeservicos/front/calendario.php?'
     . http_build_query(['month' => $current_month->format('Y-m')]);
 
 echo "<div class='pgegestor-page'>";
 
-echo "<div class='pgegestor-toolbar'>";
-echo "<a class='pgegestor-back-btn' href='" . pgegestor_h($back_link) . "'>&larr; Voltar</a>";
-echo "</div>";
-
 echo "<div class='pgegestor-calendar-header'>";
 echo "<div>";
+echo "<div class='pgeservicos-header-actions'>";
+echo "<a class='pgeservicos-header-back-link' href='" . pgegestor_h($back_link) . "'>&larr; Reservas</a>";
+echo "<a class='pgeservicos-header-back-link' href='" . pgegestor_h($portal_link) . "'>&larr; Voltar para o Portal de Serviços</a>";
+echo "</div>";
 echo "<h1 class='pgegestor-calendar-title'>" . pgegestor_h($month_title) . "</h1>";
 
 if ($selected_item) {

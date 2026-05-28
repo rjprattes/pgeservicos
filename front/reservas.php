@@ -225,6 +225,11 @@ echo "<div class='pgeservicos-container pgeservicos-reservas-page'>";
 
 echo "
 <section class='pgeservicos-hero'>
+    <div class='pgeservicos-header-actions'>
+        <a class='pgeservicos-header-back-link' href='" . pgegestor_h($portal_link) . "'>
+            &larr; Voltar para o Portal de Serviços
+        </a>
+    </div>
     <h1>Reserva de Salas de Reunião</h1>
     <p>
         Consulte a disponibilidade das salas, visualize os calendários de reserva e selecione o espaço mais adequado
@@ -233,9 +238,6 @@ echo "
 </section>
 ";
 
-echo "
-<a class='pgeservicos-back-link' href='" . pgegestor_h($portal_link) . "'>&larr; Voltar para o Portal de Serviços</a>
-";
 
 echo "
 <div class='pgeservicos-reservas-header'>
