@@ -1,6 +1,6 @@
 .pgeservicos-container {
-  --pgeservicos-primary: var(--tblr-primary, #2f7ecb);
-  --pgeservicos-primary-rgb: var(--tblr-primary-rgb, 47, 126, 203);
+  --pgeservicos-primary: var(--tblr-primary, #fec95c);
+  --pgeservicos-primary-rgb: var(--tblr-primary-rgb, 254, 201, 92);
   --pgeservicos-primary-soft: rgba(var(--pgeservicos-primary-rgb), 0.12);
   --pgeservicos-primary-softer: rgba(var(--pgeservicos-primary-rgb), 0.07);
   --pgeservicos-surface: var(--tblr-card-bg, #fff);
@@ -12,9 +12,16 @@
   --pgeservicos-border: var(--tblr-border-color, #e5e7eb);
   --pgeservicos-border-light: var(--tblr-border-color-light, #f2f3f4);
   --pgeservicos-on-primary: var(--tblr-btn-color-text, #fff);
+  --pgeservicos-primary-contrast: var(--pgeservicos-on-primary);
   --pgeservicos-accent-text: var(--pgeservicos-primary);
-  --pgeservicos-current-sidebar-bg: var(--pgeservicos-primary);
-  --pgeservicos-current-sidebar-color: var(--pgeservicos-on-primary);
+  --pgeservicos-current-sidebar-bg: var(--pgeservicos-menu-bg, var(--pgeservicos-primary));
+  --pgeservicos-current-sidebar-color: var(--pgeservicos-menu-color, var(--pgeservicos-on-primary));
+  --pgeservicos-action-bg: var(--pgeservicos-primary);
+  --pgeservicos-action-color: var(--pgeservicos-on-primary);
+  --pgeservicos-toast-bg: var(--pgeservicos-action-bg);
+  --pgeservicos-toast-color: var(--pgeservicos-action-color);
+  --pgeservicos-scroll-btn-bg: var(--pgeservicos-action-bg);
+  --pgeservicos-scroll-btn-color: var(--pgeservicos-action-color);
   max-width: 1200px;
   margin: 0 auto;
   padding: 28px 24px 48px;

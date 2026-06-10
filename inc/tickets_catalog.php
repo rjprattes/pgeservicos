@@ -1,6 +1,7 @@
 <?php
 
 require_once(__DIR__ . '/ticket_view_state.php');
+require_once(__DIR__ . '/satisfaction.php');
 
 if (!function_exists('pgeservicos_ticket_h')) {
     function pgeservicos_ticket_h($value) {
@@ -177,6 +178,12 @@ if (!function_exists('pgeservicos_normalize_label')) {
 if (!function_exists('pgeservicos_normalize_profile_name')) {
     function pgeservicos_normalize_profile_name($name) {
         return pgeservicos_normalize_label($name);
+    }
+}
+
+if (!function_exists('pgeservicos_current_profile_is_user')) {
+    function pgeservicos_current_profile_is_user() {
+        return pgeservicos_normalize_profile_name(pgeservicos_current_profile_name()) === 'usuario';
     }
 }
 
@@ -436,11 +443,13 @@ if (!function_exists('pgeservicos_collect_user_ticket_involvements')) {
 if (!function_exists('pgeservicos_ticket_status_filter_options')) {
     function pgeservicos_ticket_status_filter_options() {
         $options = [
-            'not_solved'   => 'Não solucionado',
-            'not_closed'   => 'Não fechado',
-            'processing'   => 'Processando',
-            'solved_closed'=> 'Solucionado + Fechado',
-            'all'          => 'Todos',
+            'all'               => 'Todos',
+            'not_solved'        => 'Não solucionado',
+            'not_closed'        => 'Não fechado',
+            'processing'        => 'Processando',
+            'solved_closed'     => 'Solucionado + Fechado',
+            'updated_only'      => 'Somente atualizados',
+            'awaiting_approval' => 'Aguardando minha aprovação',
         ];
 
         foreach (Ticket::getAllStatusArray(true) as $status_id => $status_label) {
@@ -452,6 +461,12 @@ if (!function_exists('pgeservicos_ticket_status_filter_options')) {
         }
 
         return $options;
+    }
+}
+
+if (!function_exists('pgeservicos_ticket_special_status_values')) {
+    function pgeservicos_ticket_special_status_values() {
+        return ['updated_only', 'awaiting_approval'];
     }
 }
 
@@ -473,7 +488,7 @@ if (!function_exists('pgeservicos_ticket_apply_status_filter')) {
     function pgeservicos_ticket_apply_status_filter(array &$where, $status_filter) {
         $status_filter = pgeservicos_ticket_normalize_status_filter($status_filter);
 
-        if ($status_filter === 'all') {
+        if ($status_filter === 'all' || in_array($status_filter, pgeservicos_ticket_special_status_values(), true)) {
             return;
         }
 
@@ -541,14 +556,120 @@ if (!function_exists('pgeservicos_ticket_order_criteria')) {
     }
 }
 
+if (!function_exists('pgeservicos_parse_ticket_filter_date')) {
+    function pgeservicos_parse_ticket_filter_date($value, $end_of_day = false) {
+        $value = trim((string)$value);
+
+        if ($value === '') {
+            return '';
+        }
+
+        $formats = ['Y-m-d', 'd/m/Y', 'd-m-Y'];
+
+        foreach ($formats as $format) {
+            $date = DateTimeImmutable::createFromFormat('!' . $format, $value);
+
+            if (!$date instanceof DateTimeImmutable) {
+                continue;
+            }
+
+            $errors = DateTimeImmutable::getLastErrors();
+
+            if ($errors !== false && (!empty($errors['warning_count']) || !empty($errors['error_count']))) {
+                continue;
+            }
+
+            $date = $end_of_day
+                ? $date->setTime(23, 59, 59)
+                : $date->setTime(0, 0, 0);
+
+            return $date->format('Y-m-d H:i:s');
+        }
+
+        return '';
+    }
+}
+
+if (!function_exists('pgeservicos_normalize_ticket_date_filter')) {
+    function pgeservicos_normalize_ticket_date_filter(array $input, $prefix) {
+        $enabled = !empty($input[$prefix . '_enabled']);
+        $from_sql = pgeservicos_parse_ticket_filter_date($input[$prefix . '_from'] ?? '', false);
+        $to_sql = pgeservicos_parse_ticket_filter_date($input[$prefix . '_to'] ?? '', true);
+
+        if (!$enabled) {
+            return [
+                'enabled'  => 0,
+                'from'     => '',
+                'to'       => '',
+                'from_sql' => '',
+                'to_sql'   => '',
+            ];
+        }
+
+        return [
+            'enabled'  => 1,
+            'from'     => $from_sql !== '' ? substr($from_sql, 0, 10) : '',
+            'to'       => $to_sql !== '' ? substr($to_sql, 0, 10) : '',
+            'from_sql' => $from_sql,
+            'to_sql'   => $to_sql,
+        ];
+    }
+}
+
+if (!function_exists('pgeservicos_normalize_ticket_entity_filter')) {
+    function pgeservicos_normalize_ticket_entity_filter($input) {
+        if (!isset($input['entidade'])) {
+            return -1;
+        }
+
+        $raw_entity = trim((string)$input['entidade']);
+
+        if ($raw_entity === '' || $raw_entity === 'all') {
+            return -1;
+        }
+
+        return (int)$raw_entity;
+    }
+}
+
+if (!function_exists('pgeservicos_normalize_ticket_search_filter')) {
+    function pgeservicos_normalize_ticket_search_filter($search) {
+        $search = mb_substr(trim((string)$search), 0, 120, 'UTF-8');
+
+        return mb_strlen($search, 'UTF-8') >= 3 ? $search : '';
+    }
+}
+
 if (!function_exists('pgeservicos_normalize_ticket_filters')) {
     function pgeservicos_normalize_ticket_filters($input) {
         $status = pgeservicos_ticket_normalize_status_filter($input['status'] ?? 'not_solved');
-        $entity = isset($input['entidade']) ? (int)$input['entidade'] : -1;
+        $entity = pgeservicos_normalize_ticket_entity_filter($input);
         $page = isset($input['page']) ? (int)$input['page'] : 1;
         $per_page = isset($input['per_page']) ? (int)$input['per_page'] : 20;
         $sort = pgeservicos_ticket_normalize_sort($input['sort'] ?? 'updated_desc');
-        $updated = !empty($input['atualizados']) ? 1 : 0;
+        $updated = (!empty($input['atualizados']) || !empty($input['updated_only'])) ? 1 : 0;
+        $satisfaction = !empty($input['satisfaction']) ? 1 : 0;
+        $awaiting_approval = !empty($input['awaiting_approval']) ? 1 : 0;
+
+        if ($status === 'updated_only') {
+            $updated = 1;
+            $awaiting_approval = 0;
+        } elseif ($status === 'awaiting_approval') {
+            $awaiting_approval = 1;
+            $updated = 0;
+        } elseif ($awaiting_approval) {
+            $status = 'awaiting_approval';
+            $updated = 0;
+        } elseif ($updated) {
+            $status = 'updated_only';
+        }
+
+        if ($satisfaction) {
+            $status = 'all';
+            $entity = -1;
+            $updated = 0;
+            $awaiting_approval = 0;
+        }
 
         if (!in_array($per_page, [20, 50, 100, 250, 500], true)) {
             $per_page = 20;
@@ -558,14 +679,43 @@ if (!function_exists('pgeservicos_normalize_ticket_filters')) {
             $page = 1;
         }
 
+        $opened = pgeservicos_normalize_ticket_date_filter($input, 'opened');
+        $solved = pgeservicos_normalize_ticket_date_filter($input, 'solved');
+        $closed = pgeservicos_normalize_ticket_date_filter($input, 'closed');
+        $search = pgeservicos_normalize_ticket_search_filter($input['q'] ?? '');
+
+        if ($satisfaction) {
+            $search = '';
+            $opened = ['enabled' => 0, 'from' => '', 'to' => '', 'from_sql' => '', 'to_sql' => ''];
+            $solved = ['enabled' => 0, 'from' => '', 'to' => '', 'from_sql' => '', 'to_sql' => ''];
+            $closed = ['enabled' => 0, 'from' => '', 'to' => '', 'from_sql' => '', 'to_sql' => ''];
+        }
+
         return [
-            'q'            => mb_substr(trim((string)($input['q'] ?? '')), 0, 120, 'UTF-8'),
-            'status'       => $status,
-            'entidade'     => $entity >= 0 ? $entity : -1,
-            'atualizados'  => $updated,
-            'page'         => $page,
-            'per_page'     => $per_page,
-            'sort'         => $sort,
+            'q'                 => $search,
+            'status'            => $status,
+            'entidade'          => $entity >= 0 ? $entity : -1,
+            'atualizados'       => $updated,
+            'awaiting_approval' => $awaiting_approval,
+            'satisfaction'       => $satisfaction,
+            'opened_enabled'    => $opened['enabled'],
+            'opened_from'       => $opened['from'],
+            'opened_to'         => $opened['to'],
+            'opened_from_sql'   => $opened['from_sql'],
+            'opened_to_sql'     => $opened['to_sql'],
+            'solved_enabled'    => $solved['enabled'],
+            'solved_from'       => $solved['from'],
+            'solved_to'         => $solved['to'],
+            'solved_from_sql'   => $solved['from_sql'],
+            'solved_to_sql'     => $solved['to_sql'],
+            'closed_enabled'    => $closed['enabled'],
+            'closed_from'       => $closed['from'],
+            'closed_to'         => $closed['to'],
+            'closed_from_sql'   => $closed['from_sql'],
+            'closed_to_sql'     => $closed['to_sql'],
+            'page'              => $page,
+            'per_page'          => $per_page,
+            'sort'              => $sort,
         ];
     }
 }
@@ -727,6 +877,103 @@ if (!function_exists('pgeservicos_build_ticket_url')) {
     }
 }
 
+if (!function_exists('pgeservicos_ticket_awaiting_approval_condition')) {
+    function pgeservicos_ticket_awaiting_approval_condition($users_id = null) {
+        global $DB;
+
+        $users_id = $users_id === null ? (int)Session::getLoginUserID() : (int)$users_id;
+
+        if ($users_id <= 0 || !$DB->tableExists('glpi_itilsolutions')) {
+            return null;
+        }
+
+        $tickets_id = DBmysql::quoteName('glpi_tickets.id');
+        $tickets_status = DBmysql::quoteName('glpi_tickets.status');
+        $solutions_table = DBmysql::quoteName('glpi_itilsolutions');
+        $ticket_itemtype = DBmysql::quoteValue(Ticket::getType());
+        $solved_status = (int)Ticket::SOLVED;
+        $waiting_status = (int)CommonITILValidation::WAITING;
+        $requester_type = (int)CommonITILActor::REQUESTER;
+        $approver_conditions = [];
+
+        if (Session::haveRight('ticket', Ticket::SURVEY)) {
+            $approver_conditions[] = DBmysql::quoteName('glpi_tickets.users_id_recipient') . " = {$users_id}";
+        }
+
+        $approver_conditions[] = "EXISTS ("
+            . "SELECT 1 FROM " . DBmysql::quoteName('glpi_tickets_users') . " tu "
+            . "WHERE tu.`tickets_id` = {$tickets_id} "
+            . "AND tu.`users_id` = {$users_id} "
+            . "AND tu.`type` = {$requester_type}"
+            . ")";
+
+        $groups = array_values(array_unique(array_filter(array_map('intval', $_SESSION['glpigroups'] ?? []))));
+
+        if (!empty($groups)) {
+            $approver_conditions[] = "EXISTS ("
+                . "SELECT 1 FROM " . DBmysql::quoteName('glpi_groups_tickets') . " gt "
+                . "WHERE gt.`tickets_id` = {$tickets_id} "
+                . "AND gt.`groups_id` IN (" . implode(',', $groups) . ") "
+                . "AND gt.`type` = {$requester_type}"
+                . ")";
+        }
+
+        return "{$tickets_status} = {$solved_status} "
+            . "AND EXISTS ("
+            . "SELECT 1 FROM {$solutions_table} sol "
+            . "WHERE sol.`items_id` = {$tickets_id} "
+            . "AND sol.`itemtype` = {$ticket_itemtype} "
+            . "AND sol.`status` IN (0, {$waiting_status})"
+            . ") "
+            . "AND (" . implode(' OR ', $approver_conditions) . ")";
+    }
+}
+
+if (!function_exists('pgeservicos_ticket_awaiting_approval_expression')) {
+    function pgeservicos_ticket_awaiting_approval_expression($users_id = null) {
+        $condition = pgeservicos_ticket_awaiting_approval_condition($users_id);
+
+        return $condition !== null ? new QueryExpression($condition) : null;
+    }
+}
+
+if (!function_exists('pgeservicos_collect_awaiting_approval_ticket_ids')) {
+    function pgeservicos_collect_awaiting_approval_ticket_ids(array $ticket_ids, $users_id = null) {
+        global $DB;
+
+        $ticket_ids = array_values(array_unique(array_filter(array_map('intval', $ticket_ids))));
+
+        if (empty($ticket_ids)) {
+            return [];
+        }
+
+        $condition = pgeservicos_ticket_awaiting_approval_condition($users_id);
+
+        if ($condition === null) {
+            return [];
+        }
+
+        $awaiting_ticket_ids = [];
+
+        foreach ($DB->request([
+            'SELECT' => ['id'],
+            'FROM'   => 'glpi_tickets',
+            'WHERE'  => [
+                'id' => $ticket_ids,
+                new QueryExpression($condition),
+            ],
+        ]) as $row) {
+            $tickets_id = (int)($row['id'] ?? 0);
+
+            if ($tickets_id > 0) {
+                $awaiting_ticket_ids[$tickets_id] = $tickets_id;
+            }
+        }
+
+        return $awaiting_ticket_ids;
+    }
+}
+
 if (!function_exists('pgeservicos_ticket_matches_filters')) {
     function pgeservicos_ticket_matches_filters($ticket, $filters, $last_view_at) {
         if (!empty($filters['atualizados']) && empty($ticket['is_updated'])) {
@@ -776,18 +1023,103 @@ if (!function_exists('pgeservicos_ticket_count')) {
 
 if (!function_exists('pgeservicos_ticket_apply_search_filter')) {
     function pgeservicos_ticket_apply_search_filter(array &$where, $search) {
-        $search = trim((string)$search);
+        global $DB;
+
+        $search = pgeservicos_normalize_ticket_search_filter($search);
 
         if ($search === '') {
             return;
         }
 
-        $where['OR'] = [
-            'name' => ['LIKE', '%' . $search . '%'],
+        $like = DBmysql::quoteValue('%' . $search . '%');
+        $tickets_id = DBmysql::quoteName('glpi_tickets.id');
+        $tickets_name = DBmysql::quoteName('glpi_tickets.name');
+        $tickets_location = DBmysql::quoteName('glpi_tickets.locations_id');
+        $ticket_itemtype = DBmysql::quoteValue(Ticket::getType());
+        $requester_type = (int)CommonITILActor::REQUESTER;
+        $assign_type = (int)CommonITILActor::ASSIGN;
+
+        $conditions = [
+            "CAST({$tickets_id} AS CHAR) LIKE {$like}",
+            "{$tickets_name} LIKE {$like}",
+            "EXISTS (
+                SELECT 1
+                FROM " . DBmysql::quoteName('glpi_tickets_users') . " tu
+                INNER JOIN " . DBmysql::quoteName('glpi_users') . " u ON u.`id` = tu.`users_id`
+                WHERE tu.`tickets_id` = {$tickets_id}
+                    AND tu.`type` IN ({$requester_type}, {$assign_type})
+                    AND (
+                        u.`name` LIKE {$like}
+                        OR u.`realname` LIKE {$like}
+                        OR u.`firstname` LIKE {$like}
+                        OR CONCAT_WS(' ', u.`firstname`, u.`realname`, u.`name`) LIKE {$like}
+                    )
+            )",
+            "EXISTS (
+                SELECT 1
+                FROM " . DBmysql::quoteName('glpi_groups_tickets') . " gt
+                INNER JOIN " . DBmysql::quoteName('glpi_groups') . " g ON g.`id` = gt.`groups_id`
+                WHERE gt.`tickets_id` = {$tickets_id}
+                    AND gt.`type` IN ({$requester_type}, {$assign_type})
+                    AND (g.`name` LIKE {$like} OR g.`completename` LIKE {$like})
+            )",
+            "EXISTS (
+                SELECT 1
+                FROM " . DBmysql::quoteName('glpi_locations') . " loc
+                WHERE loc.`id` = {$tickets_location}
+                    AND (loc.`name` LIKE {$like} OR loc.`completename` LIKE {$like})
+            )",
+            "EXISTS (
+                SELECT 1
+                FROM " . DBmysql::quoteName('glpi_itilfollowups') . " fu
+                WHERE fu.`items_id` = {$tickets_id}
+                    AND fu.`itemtype` = {$ticket_itemtype}
+                    AND fu.`content` LIKE {$like}
+            )",
         ];
 
-        if (ctype_digit($search)) {
-            $where['OR']['id'] = (int)$search;
+        if ($DB->tableExists('glpi_tickettasks')) {
+            $conditions[] = "EXISTS (
+                SELECT 1
+                FROM " . DBmysql::quoteName('glpi_tickettasks') . " task
+                WHERE task.`tickets_id` = {$tickets_id}
+                    AND task.`content` LIKE {$like}
+            )";
+        }
+
+        $where[] = new QueryExpression('(' . implode(' OR ', $conditions) . ')');
+    }
+}
+
+if (!function_exists('pgeservicos_ticket_apply_date_filters')) {
+    function pgeservicos_ticket_apply_date_filters(array &$where, array $filters) {
+        $date_fields = [
+            'opened' => 'date',
+            'solved' => 'solvedate',
+            'closed' => 'closedate',
+        ];
+
+        foreach ($date_fields as $prefix => $field) {
+            if (empty($filters[$prefix . '_enabled'])) {
+                continue;
+            }
+
+            $conditions = [];
+            $field_name = DBmysql::quoteName('glpi_tickets.' . $field);
+            $from = trim((string)($filters[$prefix . '_from_sql'] ?? ''));
+            $to = trim((string)($filters[$prefix . '_to_sql'] ?? ''));
+
+            if ($from !== '') {
+                $conditions[] = "{$field_name} >= " . DBmysql::quoteValue($from);
+            }
+
+            if ($to !== '') {
+                $conditions[] = "{$field_name} <= " . DBmysql::quoteValue($to);
+            }
+
+            if (!empty($conditions)) {
+                $where[] = new QueryExpression('(' . implode(' AND ', $conditions) . ')');
+            }
         }
     }
 }
@@ -1114,6 +1446,12 @@ if (!function_exists('pgeservicos_get_user_tickets')) {
         $filters = pgeservicos_normalize_ticket_filters($filters);
         $context = pgeservicos_get_ticket_list_context();
 
+        if (!empty($filters['satisfaction'])) {
+            $context['mode'] = 'satisfaction';
+            $context['title'] = 'Chamados aguardando avaliação';
+            $context['description'] = 'Selecione um chamado para responder à pesquisa de satisfação.';
+        }
+
         $users_id = (int)($options['users_id'] ?? Session::getLoginUserID());
         $last_view_at = $options['last_view_at'] ?? pgeservicos_get_ticket_last_view_at();
         $updated_expression = pgeservicos_ticket_updated_expression($users_id);
@@ -1131,6 +1469,28 @@ if (!function_exists('pgeservicos_get_user_tickets')) {
         pgeservicos_ticket_apply_status_filter($entity_option_where, $filters['status']);
 
         pgeservicos_ticket_apply_search_filter($entity_option_where, $filters['q']);
+        pgeservicos_ticket_apply_date_filters($entity_option_where, $filters);
+
+        if (!empty($filters['awaiting_approval'])) {
+            $awaiting_approval_expression = pgeservicos_ticket_awaiting_approval_expression($users_id);
+
+            if (!$awaiting_approval_expression instanceof QueryExpression) {
+                return pgeservicos_ticket_empty_result($filters, $context);
+            }
+
+            $entity_option_where[] = $awaiting_approval_expression;
+        }
+
+        if (!empty($filters['satisfaction'])) {
+            $satisfaction_expression = pgeservicos_ticket_satisfaction_pending_expression($users_id);
+
+            if (!$satisfaction_expression instanceof QueryExpression) {
+                return pgeservicos_ticket_empty_result($filters, $context);
+            }
+
+            $entity_option_where[] = $satisfaction_expression;
+        }
+
         $entity_options = pgeservicos_ticket_entity_options($entity_option_where);
         $where = $entity_option_where;
 
@@ -1227,12 +1587,16 @@ if (!function_exists('pgeservicos_get_user_tickets')) {
 
         $view_states = pgeservicos_get_ticket_view_states($row_ticket_ids, $users_id);
         $has_persistent_views = pgeservicos_ticket_views_table_exists(false);
+        $awaiting_approval_ticket_ids = pgeservicos_collect_awaiting_approval_ticket_ids($row_ticket_ids, $users_id);
+        $satisfaction_pending_ticket_ids = pgeservicos_collect_satisfaction_pending_ticket_ids($row_ticket_ids, $users_id);
 
         foreach ($rows as &$row) {
             $tickets_id = (int)$row['id'];
             $row['is_updated'] = $has_persistent_views
                 ? pgeservicos_ticket_is_updated_for_view($row['date_mod'], $view_states[$tickets_id] ?? null)
                 : pgeservicos_is_ticket_updated($row['date_mod'], $last_view_at, $tickets_id, $users_id);
+            $row['is_awaiting_approval'] = isset($awaiting_approval_ticket_ids[$tickets_id]);
+            $row['is_satisfaction_pending'] = isset($satisfaction_pending_ticket_ids[$tickets_id]);
         }
 
         unset($row);
@@ -1247,7 +1611,12 @@ if (!function_exists('pgeservicos_get_user_tickets')) {
             $row['entity_name'] = $entity_names[$entities_id] ?? ('Entidade #' . $entities_id);
             $row['status_label'] = Ticket::getStatus((int)$row['status']);
             $row['priority_label'] = Ticket::getPriorityName((int)$row['priority']);
-            $row['url'] = pgeservicos_build_ticket_url((int)$row['id'], $CFG_GLPI['root_doc'] ?? '');
+            if (!empty($filters['satisfaction'])) {
+                $row['url'] = ($CFG_GLPI['root_doc'] ?? '')
+                    . '/plugins/pgeservicos/front/pesquisa_satisfacao.php?tickets_id=' . (int)$row['id'];
+            } else {
+                $row['url'] = pgeservicos_build_ticket_url((int)$row['id'], $CFG_GLPI['root_doc'] ?? '');
+            }
         }
 
         unset($row);

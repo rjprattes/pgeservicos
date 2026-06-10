@@ -1648,20 +1648,33 @@
     return colorLuminance(value) > 0.55 ? "#1f2937" : "#ffffff";
   }
 
-  function cssVariable(name, fallback) {
-    const value = window.getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  function cssVariable(name, fallback, scope) {
+    const scoped = scope ? window.getComputedStyle(scope).getPropertyValue(name).trim() : "";
+    const value = scoped || window.getComputedStyle(document.documentElement).getPropertyValue(name).trim();
     return value || fallback;
   }
 
   function rgbTriplet(value) {
     const rgb = parseCssRgb(value);
-    return rgb ? [Math.round(rgb.r), Math.round(rgb.g), Math.round(rgb.b)].join(", ") : "47, 126, 203";
+    return rgb ? [Math.round(rgb.r), Math.round(rgb.g), Math.round(rgb.b)].join(", ") : "254, 201, 92";
   }
 
   function syncThemeColors(page) {
-    const primary = cssVariable("--tblr-primary", cssVariable("--pgeservicos-primary", "#2f7ecb"));
-    const primaryColor = readableTextFor(primary);
-    const primaryRgb = cssVariable("--tblr-primary-rgb", rgbTriplet(primary));
+    const primary = cssVariable(
+      "--pgeservicos-action-bg",
+      cssVariable("--pgeservicos-primary", cssVariable("--tblr-primary", "#fec95c", page), page),
+      page
+    );
+    const primaryColor = cssVariable(
+      "--pgeservicos-action-color",
+      cssVariable("--pgeservicos-primary-contrast", readableTextFor(primary), page),
+      page
+    );
+    const primaryRgb = cssVariable(
+      "--pgeservicos-action-accent-rgb",
+      cssVariable("--pgeservicos-primary-rgb", rgbTriplet(primary), page),
+      page
+    );
     page.style.removeProperty("--pgeservicos-ticket-header-bg");
     page.style.removeProperty("--pgeservicos-ticket-header-color");
     page.style.setProperty("--pgeservicos-action-bg", primary);
@@ -1675,6 +1688,22 @@
     page.style.setProperty("--pgeservicos-scroll-btn-color", primaryColor);
   }
 
+  function fixedOrStickyAncestor(element) {
+    let current = element;
+
+    while (current && current !== document.documentElement) {
+      const style = window.getComputedStyle(current);
+
+      if (["fixed", "sticky"].includes(style.position)) {
+        return current;
+      }
+
+      current = current.parentElement;
+    }
+
+    return null;
+  }
+
   function isVisibleTopElement(element, page) {
     if (!element || (page && page.contains(element)) || element.matches(".sidebar, .navbar-vertical")) {
       return false;
@@ -1682,6 +1711,8 @@
 
     const rect = element.getBoundingClientRect();
     const style = window.getComputedStyle(element);
+    const positioned = ["fixed", "sticky"].includes(style.position);
+    const customTopbar = element.matches(".pgeservicos-portal-topbar");
 
     return rect.width > 0
       && rect.height > 0
@@ -1689,11 +1720,13 @@
       && rect.top <= 160
       && style.display !== "none"
       && style.visibility !== "hidden"
-      && ["fixed", "sticky"].includes(style.position);
+      && (positioned || (customTopbar && Boolean(fixedOrStickyAncestor(element))));
   }
 
   function updateStickyOffset(page) {
     const selectors = [
+      ".pgeservicos-portal-topbar",
+      "header.navbar[data-pgeservicos-topbar]",
       ".topbar",
       ".navbar.fixed-top",
       ".navbar.sticky-top",
@@ -1705,6 +1738,14 @@
     let top = 0;
 
     const candidates = [];
+    const customTopbar = Array.prototype.slice.call(document.querySelectorAll(".pgeservicos-portal-topbar"))
+      .find(function (element) {
+        return isVisibleTopElement(element, page);
+      });
+
+    if (customTopbar) {
+      top = customTopbar.getBoundingClientRect().bottom;
+    }
 
     selectors.forEach(function (selector) {
       document.querySelectorAll(selector).forEach(function (element) {
@@ -1717,25 +1758,30 @@
       });
     });
 
-    candidates
-      .sort(function (first, second) {
-        return first.getBoundingClientRect().top - second.getBoundingClientRect().top;
-      })
-      .forEach(function (element) {
-        const rect = element.getBoundingClientRect();
-        const style = window.getComputedStyle(element);
-        const isFixed = style.position === "fixed";
-        const isStackedSticky = style.position === "sticky" && rect.top <= top + 3;
+    if (!top) {
+      candidates
+        .filter(function (element) {
+          return !element.matches(".pgeservicos-portal-topbar");
+        })
+        .sort(function (first, second) {
+          return first.getBoundingClientRect().top - second.getBoundingClientRect().top;
+        })
+        .forEach(function (element) {
+          const rect = element.getBoundingClientRect();
+          const style = window.getComputedStyle(element);
+          const isFixed = style.position === "fixed";
+          const isStackedSticky = style.position === "sticky" && rect.top <= top + 3;
 
-        if (!isFixed && !isStackedSticky) {
-          return;
-        }
+          if (!isFixed && !isStackedSticky) {
+            return;
+          }
 
-        top = Math.max(top, rect.bottom);
-      });
+          top = Math.max(top, rect.bottom);
+        });
+    }
 
     if (top > 0) {
-      page.style.setProperty("--pgeservicos-sticky-top", Math.ceil(top + 4) + "px");
+      page.style.setProperty("--pgeservicos-sticky-top", Math.ceil(top) + "px");
     } else {
       page.style.removeProperty("--pgeservicos-sticky-top");
     }

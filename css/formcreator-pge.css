@@ -1,6 +1,6 @@
 .pgeservicos-formcreator-page {
-  --pgeservicos-fc-primary: var(--tblr-primary, #2f7ecb);
-  --pgeservicos-fc-primary-rgb: var(--tblr-primary-rgb, 47, 126, 203);
+  --pgeservicos-fc-primary: var(--tblr-primary, #fec95c);
+  --pgeservicos-fc-primary-rgb: var(--tblr-primary-rgb, 254, 201, 92);
   --pgeservicos-fc-primary-soft: rgba(var(--pgeservicos-fc-primary-rgb), 0.12);
   --pgeservicos-fc-primary-softer: rgba(
     var(--pgeservicos-fc-primary-rgb),

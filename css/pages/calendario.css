@@ -1,6 +1,6 @@
 .pgegestor-page {
-  --pgeservicos-primary: var(--tblr-primary, #2f7ecb);
-  --pgeservicos-primary-rgb: var(--tblr-primary-rgb, 47, 126, 203);
+  --pgeservicos-primary: var(--tblr-primary, #fec95c);
+  --pgeservicos-primary-rgb: var(--tblr-primary-rgb, 254, 201, 92);
   --pgeservicos-primary-soft: rgba(var(--pgeservicos-primary-rgb), 0.12);
   --pgeservicos-primary-softer: rgba(var(--pgeservicos-primary-rgb), 0.07);
   --pgeservicos-surface: var(--tblr-card-bg, #fff);
@@ -12,8 +12,8 @@
   --pgeservicos-border-light: var(--tblr-border-color-light, #f4f7fb);
   --pgeservicos-on-primary: var(--tblr-btn-color-text, #fff);
   --pgeservicos-accent-text: var(--pgeservicos-primary);
-  --pgeservicos-current-sidebar-bg: var(--pgeservicos-primary);
-  --pgeservicos-current-sidebar-color: var(--pgeservicos-on-primary);
+  --pgeservicos-current-sidebar-bg: var(--pgeservicos-menu-bg, var(--pgeservicos-primary));
+  --pgeservicos-current-sidebar-color: var(--pgeservicos-menu-color, var(--pgeservicos-on-primary));
   max-width: 1380px;
   margin: 22px auto;
   padding: 0 14px;

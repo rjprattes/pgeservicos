@@ -2,6 +2,9 @@
 
 include('../../../inc/includes.php');
 
+require_once(__DIR__ . '/../inc/plugin_state.php');
+pgeservicos_require_plugin_active();
+
 Session::checkLoginUser();
 
 global $CFG_GLPI;

@@ -16,7 +16,7 @@
   top: var(--pgeservicos-sticky-top, var(--tblr-header-height, 56px));
   left: var(--pgeservicos-content-left, 16px);
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) max-content;
   gap: 12px;
   align-items: center;
   width: var(--pgeservicos-content-width, min(1104px, calc(100vw - 32px)));
@@ -48,9 +48,34 @@
 .pgeservicos-chamado-sticky-links,
 .pgeservicos-chamado-sticky-badges {
   display: flex;
-  flex-wrap: wrap;
   gap: 6px;
   align-items: center;
+}
+
+.pgeservicos-chamado-sticky-links {
+  grid-column: 1;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.pgeservicos-chamado-sticky-title {
+  grid-column: 2;
+}
+
+.pgeservicos-chamado-sticky-badges {
+  grid-column: 3;
+  justify-self: end;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  min-width: max-content;
+  max-width: max-content;
+  white-space: nowrap;
+}
+
+.pgeservicos-chamado-sticky-badges .pgeservicos-chamado-badge {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .pgeservicos-chamado-sticky-links a {
@@ -77,6 +102,7 @@
   gap: 8px;
   align-items: center;
   min-width: 0;
+  overflow: hidden;
 }
 
 .pgeservicos-chamado-sticky-title span {
@@ -86,6 +112,7 @@
 }
 
 .pgeservicos-chamado-sticky-title strong {
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   color: var(--pgeservicos-on-primary);
@@ -154,6 +181,7 @@
 
 .pgeservicos-chamado-badge {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   min-height: 24px;
   padding: 4px 9px;
@@ -162,6 +190,10 @@
   color: var(--pgeservicos-on-primary);
   font-size: 11px;
   font-weight: 850;
+  line-height: 1.15;
+  overflow-wrap: normal;
+  white-space: nowrap;
+  word-break: normal;
 }
 
 .pgeservicos-chamado-badge.is-primary,
@@ -1573,6 +1605,19 @@
     align-items: stretch;
   }
 
+  .pgeservicos-chamado-sticky-links,
+  .pgeservicos-chamado-sticky-title,
+  .pgeservicos-chamado-sticky-badges {
+    grid-column: 1;
+  }
+
+  .pgeservicos-chamado-sticky-badges {
+    justify-self: start;
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .pgeservicos-chamado-actions {
     width: calc(100vw - 20px);
     bottom: 10px;
@@ -1976,7 +2021,7 @@
 }
 
 .pgeservicos-toast.is-info {
-  border-left-color: var(--tblr-primary, var(--pgeservicos-primary));
+  border-left-color: var(--pgeservicos-primary, #fec95c);
 }
 
 .pgeservicos-toast button {
@@ -2560,8 +2605,8 @@
 /* Body-level floating UI variables: toast/button live outside the page container. */
 .pgeservicos-toast-region,
 .pgeservicos-scroll-bottom-btn {
-  --pgeservicos-action-accent: var(--tblr-primary, #2f7ecb);
-  --pgeservicos-action-accent-rgb: var(--tblr-primary-rgb, 47, 126, 203);
+  --pgeservicos-action-accent: var(--pgeservicos-primary, #fec95c);
+  --pgeservicos-action-accent-rgb: var(--pgeservicos-primary-rgb, 254, 201, 92);
   --pgeservicos-action-accent-fg: var(--tblr-btn-color-text, #fff);
   --pgeservicos-border: var(--tblr-border-color, #e5e7eb);
 }
@@ -2570,7 +2615,7 @@
 .pgeservicos-chamado-page {
   --pgeservicos-ticket-header-bg: var(--pgeservicos-menu-bg, var(--pgeservicos-current-sidebar-bg, var(--tblr-body-color)));
   --pgeservicos-ticket-header-color: var(--pgeservicos-menu-color, var(--pgeservicos-current-sidebar-color, var(--tblr-body-bg)));
-  --pgeservicos-action-bg: var(--tblr-primary, var(--pgeservicos-primary));
+  --pgeservicos-action-bg: var(--pgeservicos-primary, #fec95c);
   --pgeservicos-action-color: var(--pgeservicos-primary-contrast, var(--tblr-btn-color-text, #fff));
   --pgeservicos-toast-bg: var(--pgeservicos-action-bg);
   --pgeservicos-toast-color: var(--pgeservicos-action-color);
@@ -2617,7 +2662,7 @@
 
 .pgeservicos-toast-region,
 .pgeservicos-scroll-bottom-btn {
-  --pgeservicos-action-bg: var(--tblr-primary, #2f7ecb);
+  --pgeservicos-action-bg: var(--pgeservicos-primary, #fec95c);
   --pgeservicos-action-color: var(--pgeservicos-primary-contrast, var(--tblr-btn-color-text, #fff));
   --pgeservicos-toast-bg: var(--pgeservicos-action-bg);
   --pgeservicos-toast-color: var(--pgeservicos-action-color);

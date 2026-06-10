@@ -2,6 +2,9 @@
 
 include('../../../inc/includes.php');
 
+require_once(__DIR__ . '/../inc/plugin_state.php');
+pgeservicos_require_plugin_active();
+
 Session::checkLoginUser();
 
 global $DB, $CFG_GLPI;
@@ -221,7 +224,7 @@ $rooms = pgegestor_get_reservable_rooms();
 $portal_link = $CFG_GLPI['root_doc'] . '/plugins/pgeservicos/front/index.php';
 $full_calendar_link = $CFG_GLPI['root_doc'] . '/plugins/pgeservicos/front/calendario.php';
 
-echo "<div class='pgeservicos-container pgeservicos-reservas-page'>";
+echo "<div class='pgeservicos-container pgeservicos-reservas-page' style='" . pgeservicos_theme_style_attr() . "'" . pgeservicos_theme_topbar_context_attr() . ">";
 
 echo "
 <section class='pgeservicos-hero'>

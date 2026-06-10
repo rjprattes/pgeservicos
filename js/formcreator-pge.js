@@ -212,6 +212,16 @@
       });
     });
 
+    var verticalSidebar = candidates.find(function (element) {
+      return element.matches("aside.sidebar, .navbar-vertical.sidebar, .sidebar.navbar")
+        && isVisibleElement(element)
+        && !isTransparentBackground(window.getComputedStyle(element).backgroundColor);
+    });
+
+    if (verticalSidebar) {
+      return verticalSidebar;
+    }
+
     candidates = candidates
       .filter(isVisibleElement)
       .map(function (element) {
@@ -269,6 +279,8 @@
     shell.style.setProperty("--pgeservicos-menu-color", color);
     shell.style.setProperty("--pgeservicos-current-sidebar-bg", background);
     shell.style.setProperty("--pgeservicos-current-sidebar-color", color);
+    shell.style.setProperty("--pgeservicos-fc-header-bg", background);
+    shell.style.setProperty("--pgeservicos-fc-header-color", color);
   }
 
   function createHeader(title) {
@@ -309,6 +321,9 @@
     page.className = "pgeservicos-formcreator-page";
     shell.className = "pgeservicos-formcreator-shell";
     card.className = "pgeservicos-formcreator-card";
+
+    applyMenuTheme(page);
+    applyMenuTheme(shell);
 
     parent.insertBefore(page, form);
     page.appendChild(shell);

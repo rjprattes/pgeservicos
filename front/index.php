@@ -2,6 +2,9 @@
 
 include('../../../inc/includes.php');
 
+require_once(__DIR__ . '/../inc/plugin_state.php');
+pgeservicos_require_plugin_active();
+
 Session::checkLoginUser();
 
 global $CFG_GLPI;
@@ -185,6 +188,11 @@ $meus_chamados_card_title = $active_profile_normalized === 'usuario'
 $meus_chamados_card_description = $active_profile_normalized === 'usuario'
     ? 'Acompanhe seus chamados e atualizações.'
     : 'Acompanhe chamados e atualizações.';
+$satisfaction_results_url = ($CFG_GLPI['root_doc'] ?? '') . '/plugins/pgeservicos/front/satisfacao_resultados.php';
+$show_satisfaction_results_card = function_exists('pgeservicos_satisfaction_user_can_view_results')
+    && pgeservicos_satisfaction_user_can_view_results()
+    && function_exists('pgeservicos_satisfaction_plugin_ready')
+    && pgeservicos_satisfaction_plugin_ready();
 $search_results[] = [
     'title'       => 'Meus chamados',
     'description' => 'Acompanhe os chamados em que você está envolvido e veja atualizações recentes.',
@@ -192,6 +200,16 @@ $search_results[] = [
     'url'         => $meus_chamados_url,
     'keywords'    => 'meus chamados tickets acompanhamento atualizações requerente observador técnico grupo'
 ];
+if ($show_satisfaction_results_card) {
+    $search_results[] = [
+        'title'       => 'Resultados de satisfação',
+        'description' => 'Acompanhe as avaliações enviadas pelos usuários sobre os atendimentos.',
+        'type'        => 'Gestão',
+        'url'         => $satisfaction_results_url,
+        'keywords'    => 'resultados satisfação pesquisa avaliações atendimento notas comentários técnicos área entidade'
+    ];
+}
+
 $search_results[] = [
     'title'       => 'Canais de atendimento',
     'description' => 'Telefones, WhatsApp e e-mails dos suportes de TI, GEAD e PGE.Net.',
@@ -248,7 +266,7 @@ echo "<link rel='stylesheet' href='"
 pgeservicos_theme_print_vars();
 pgeservicos_theme_print_sidebar_sync_script($CFG_GLPI['root_doc'] ?? '', $asset_version);
 
-echo "<div class='pgeservicos-container pgeservicos-index-page'>";
+echo "<div class='pgeservicos-container pgeservicos-index-page' style='" . pgeservicos_theme_style_attr() . "'" . pgeservicos_theme_topbar_context_attr() . ">";
 
 echo "
 <section class='pgeservicos-home-top'>
@@ -325,6 +343,25 @@ echo "
     ></div>
 </section>
 ";
+
+if ($show_satisfaction_results_card) {
+    echo "
+    <h2 class='pgeservicos-section-title'>Gestão do atendimento</h2>
+    <p class='pgeservicos-subtitle'>
+        Acompanhe indicadores e respostas enviadas pelos usuários nas pesquisas de satisfação.
+    </p>
+    <div class='pgeservicos-grid'>
+        <div class='pgeservicos-card pgeservicos-area-blue'>
+            <div class='pgeservicos-card-icon'>
+                <i class='ti ti-stars' aria-hidden='true'></i>
+            </div>
+            <h3>Resultados de satisfação</h3>
+            <p>Acompanhe as avaliações enviadas pelos usuários.</p>
+            <a href='" . pgeservicos_h($satisfaction_results_url) . "'>Ver resultados</a>
+        </div>
+    </div>
+    ";
+}
 
 echo "
 <h2 class='pgeservicos-section-title'>Áreas de atendimento</h2>

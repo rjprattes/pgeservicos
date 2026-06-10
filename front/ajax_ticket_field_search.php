@@ -6,6 +6,9 @@ if (!defined('GLPI_KEEP_CSRF_TOKEN')) {
 
 include('../../../inc/includes.php');
 
+require_once(__DIR__ . '/../inc/plugin_state.php');
+pgeservicos_require_plugin_active();
+
 Session::checkLoginUser();
 Session::checkCSRF(['_glpi_csrf_token' => $_GET['_glpi_csrf_token'] ?? '']);
 

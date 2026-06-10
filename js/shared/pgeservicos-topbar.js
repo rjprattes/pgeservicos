@@ -19,12 +19,14 @@
     entityParent: null,
     entityNextSibling: null,
     observer: null,
+    bootingTopbar: null,
   };
 
   var contextSelector = [
     ".pgeservicos-container",
     ".pgegestor-page",
     ".pgeservicos-formcreator-page",
+    "[data-pgeservicos-custom-topbar='1']",
   ].join(",");
 
   var backLinkSelector = [
@@ -136,6 +138,29 @@
 
   function findNativeContainer(topbar) {
     return topbar ? topbar.querySelector(":scope > .container-fluid") : null;
+  }
+
+  function markTopbarBooting(topbar) {
+    if (!topbar || state.active) {
+      return;
+    }
+
+    if (topbar.dataset.pgeservicosTopbar !== "active") {
+      topbar.dataset.pgeservicosTopbar = "booting";
+      state.bootingTopbar = topbar;
+    }
+  }
+
+  function clearTopbarBooting(topbar) {
+    var target = topbar || state.bootingTopbar;
+
+    if (target && target.dataset.pgeservicosTopbar === "booting") {
+      delete target.dataset.pgeservicosTopbar;
+    }
+
+    if (!topbar || state.bootingTopbar === topbar) {
+      state.bootingTopbar = null;
+    }
   }
 
   function findUserMenu(container) {
@@ -396,7 +421,9 @@
     if (!links.length) {
       var placeholder = document.createElement("span");
       placeholder.className = "pgeservicos-portal-topbar__placeholder";
-      placeholder.textContent = "Portal de Serviços";
+      placeholder.textContent = "Procuradoria-Geral do Estado";
+      placeholder.setAttribute("title", "Procuradoria-Geral do Estado");
+      placeholder.setAttribute("aria-label", "Procuradoria-Geral do Estado");
       target.appendChild(placeholder);
       return;
     }
@@ -479,7 +506,7 @@
 
     customBar.className = "pgeservicos-portal-topbar";
     customBar.setAttribute("role", "region");
-    customBar.setAttribute("aria-label", "Navegação do Portal de Serviços");
+    customBar.setAttribute("aria-label", "Navegação da Procuradoria-Geral do Estado");
 
     left.className = "pgeservicos-portal-topbar__left";
     links.className = "pgeservicos-portal-topbar__links";
@@ -550,6 +577,7 @@
 
     container.insertBefore(custom.root, container.firstChild);
     hideNativeElements(container, custom.root);
+    clearTopbarBooting(topbar);
     topbar.classList.add("pgeservicos-portal-topbar-native");
     topbar.dataset.pgeservicosTopbar = "active";
     state.active = true;
@@ -588,6 +616,8 @@
       delete state.topbar.dataset.pgeservicosTopbar;
     }
 
+    clearTopbarBooting();
+
     state.active = false;
     state.topbar = null;
     state.container = null;
@@ -600,8 +630,10 @@
 
   function refresh() {
     if (shouldActivate()) {
+      markTopbarBooting(findTopbar());
       activate();
     } else {
+      clearTopbarBooting();
       deactivate();
     }
   }

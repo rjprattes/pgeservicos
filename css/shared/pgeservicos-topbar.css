@@ -1,3 +1,53 @@
+@supports selector(body:has([data-pgeservicos-custom-topbar="1"])) {
+  body.vertical-layout:has([data-pgeservicos-custom-topbar="1"])
+    .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)),
+  body:not(.horizontal-layout):has(aside.navbar-vertical):has([data-pgeservicos-custom-topbar="1"])
+    .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)),
+  .page > header.navbar[data-pgeservicos-topbar="booting"]:not(:has(.pgeservicos-portal-topbar)) {
+    min-height: 64px;
+    background: #ffffff;
+  }
+
+  body.vertical-layout:has([data-pgeservicos-custom-topbar="1"])
+    .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)) > .container-fluid,
+  body:not(.horizontal-layout):has(aside.navbar-vertical):has([data-pgeservicos-custom-topbar="1"])
+    .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)) > .container-fluid,
+  .page > header.navbar[data-pgeservicos-topbar="booting"]:not(:has(.pgeservicos-portal-topbar)) > .container-fluid {
+    position: relative;
+    min-height: 64px;
+  }
+
+  body.vertical-layout:has([data-pgeservicos-custom-topbar="1"])
+    .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)) > .container-fluid > *,
+  body:not(.horizontal-layout):has(aside.navbar-vertical):has([data-pgeservicos-custom-topbar="1"])
+    .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)) > .container-fluid > *,
+  .page > header.navbar[data-pgeservicos-topbar="booting"]:not(:has(.pgeservicos-portal-topbar)) > .container-fluid > * {
+    visibility: hidden;
+  }
+
+  body.vertical-layout:has([data-pgeservicos-custom-topbar="1"])
+    .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)) > .container-fluid::before,
+  body:not(.horizontal-layout):has(aside.navbar-vertical):has([data-pgeservicos-custom-topbar="1"])
+    .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)) > .container-fluid::before,
+  .page > header.navbar[data-pgeservicos-topbar="booting"]:not(:has(.pgeservicos-portal-topbar)) > .container-fluid::before {
+    content: "Procuradoria-Geral do Estado";
+    position: absolute;
+    top: 50%;
+    left: 16px;
+    z-index: 1;
+    max-width: min(420px, calc(100% - 32px));
+    overflow: hidden;
+    color: var(--tblr-muted, #667382);
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transform: translateY(-50%);
+    visibility: visible;
+  }
+}
+
 .pgeservicos-portal-topbar {
   display: flex;
   align-items: center;
@@ -48,9 +98,13 @@
   display: inline-flex;
   align-items: center;
   min-width: 0;
+  max-width: min(360px, 45vw);
   color: var(--tblr-muted, #667382);
   font-size: 0.875rem;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pgeservicos-portal-topbar .pgeservicos-portal-topbar__profile .dropdown-toggle,
@@ -79,7 +133,7 @@
   padding: 7px 11px;
   border: 1px solid color-mix(in srgb, var(--pgeservicos-portal-topbar-back-color, #ffffff) 78%, transparent);
   border-radius: 8px;
-  background: var(--pgeservicos-portal-topbar-back-bg, var(--tblr-primary, #206bc4));
+  background: var(--pgeservicos-portal-topbar-back-bg, var(--pgeservicos-menu-bg, var(--pgeservicos-current-sidebar-bg, var(--tblr-primary, #2f3f64))));
   color: var(--pgeservicos-portal-topbar-back-color, #ffffff);
   font-size: 0.875rem;
   font-weight: 800;
@@ -95,8 +149,8 @@
 .pgeservicos-portal-topbar .pgeservicos-portal-topbar__profile .dropdown-toggle:focus,
 .pgeservicos-portal-topbar .pgeservicos-portal-topbar__user .user-menu-dropdown-toggle:hover,
 .pgeservicos-portal-topbar .pgeservicos-portal-topbar__user .user-menu-dropdown-toggle:focus {
-  border-color: color-mix(in srgb, var(--tblr-primary, #206bc4) 42%, var(--tblr-border-color, #dbe1e8));
-  background: color-mix(in srgb, var(--tblr-primary, #206bc4) 7%, var(--tblr-card-bg, #ffffff));
+  border-color: color-mix(in srgb, var(--pgeservicos-menu-bg, var(--pgeservicos-current-sidebar-bg, var(--tblr-primary, #2f3f64))) 42%, var(--tblr-border-color, #dbe1e8));
+  background: color-mix(in srgb, var(--pgeservicos-menu-bg, var(--pgeservicos-current-sidebar-bg, var(--tblr-primary, #2f3f64))) 7%, var(--tblr-card-bg, #ffffff));
   color: var(--tblr-body-color, #1f2937);
   text-decoration: none;
 }
@@ -105,7 +159,7 @@
 .pgeservicos-portal-topbar__link:hover,
 .pgeservicos-portal-topbar__link:focus {
   border-color: var(--pgeservicos-portal-topbar-back-color, #ffffff);
-  background: color-mix(in srgb, var(--pgeservicos-portal-topbar-back-bg, var(--tblr-primary, #206bc4)) 86%, #000000);
+  background: color-mix(in srgb, var(--pgeservicos-portal-topbar-back-bg, var(--pgeservicos-menu-bg, var(--pgeservicos-current-sidebar-bg, var(--tblr-primary, #2f3f64)))) 86%, #000000);
   color: var(--pgeservicos-portal-topbar-back-color, #ffffff);
   text-decoration: none;
 }
@@ -128,7 +182,7 @@
 }
 
 .pgeservicos-portal-topbar__profile .dropdown-toggle i {
-  color: var(--tblr-primary, #206bc4);
+  color: var(--pgeservicos-menu-bg, var(--pgeservicos-current-sidebar-bg, var(--tblr-primary, #2f3f64)));
 }
 
 .pgeservicos-portal-topbar__profile .dropdown-menu {

@@ -2,6 +2,9 @@
 
 include('../../../inc/includes.php');
 
+require_once(__DIR__ . '/../inc/plugin_state.php');
+pgeservicos_require_plugin_active();
+
 Session::checkLoginUser();
 
 global $CFG_GLPI;
@@ -44,7 +47,7 @@ pgeservicos_theme_print_sidebar_sync_script($CFG_GLPI['root_doc'] ?? '', $asset_
 
 $area_key = $_GET['area'] ?? '';
 
-echo "<div class='pgeservicos-container pgeservicos-area-page'>";
+echo "<div class='pgeservicos-container pgeservicos-area-page' style='" . pgeservicos_theme_style_attr() . "'" . pgeservicos_theme_topbar_context_attr() . ">";
 
 if (!is_array($catalog) || !isset($catalog[$area_key])) {
     $home_url = ($CFG_GLPI['root_doc'] ?? '') . "/plugins/pgeservicos/front/index.php";

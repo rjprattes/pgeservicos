@@ -2,6 +2,9 @@
 
 include('../../../inc/includes.php');
 
+require_once(__DIR__ . '/../inc/plugin_state.php');
+pgeservicos_require_plugin_active();
+
 Session::checkLoginUser();
 
 global $CFG_GLPI;
@@ -220,7 +223,11 @@ echo "<script defer src='"
 pgeservicos_theme_print_vars();
 pgeservicos_theme_print_sidebar_sync_script($CFG_GLPI['root_doc'] ?? '', $asset_version);
 
-echo "<div class='pgeservicos-container pgeservicos-chamado-page' data-actor-search-url='"
+echo "<div class='pgeservicos-container pgeservicos-chamado-page' style='"
+    . pgeservicos_theme_style_attr()
+    . "'"
+    . pgeservicos_theme_topbar_context_attr()
+    . " data-actor-search-url='"
     . pgeservicos_ticket_view_h($actor_search_url)
     . "' data-csrf-token='"
     . pgeservicos_ticket_view_h($csrf_token)

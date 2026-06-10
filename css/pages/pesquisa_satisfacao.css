@@ -1,0 +1,261 @@
+.pgeservicos-satisfaction-page {
+  padding-bottom: 132px;
+  color: var(--pgeservicos-text);
+}
+
+.pgeservicos-satisfaction-hero {
+  margin-bottom: 20px;
+}
+
+.pgeservicos-satisfaction-ticket-card,
+.pgeservicos-satisfaction-form,
+.pgeservicos-satisfaction-error {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.pgeservicos-satisfaction-ticket-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 14px;
+  background: var(--pgeservicos-surface);
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.07);
+}
+
+.pgeservicos-satisfaction-ticket-icon {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--pgeservicos-primary-soft);
+  color: var(--pgeservicos-accent-text);
+  font-size: 22px;
+}
+
+.pgeservicos-satisfaction-ticket-card span,
+.pgeservicos-satisfaction-ticket-card em {
+  font-style: normal;
+}
+
+.pgeservicos-satisfaction-ticket-card h2 {
+  margin: 4px 0 10px;
+  color: var(--pgeservicos-heading);
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.pgeservicos-satisfaction-ticket-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.pgeservicos-satisfaction-ticket-meta em {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--pgeservicos-primary-softer);
+  color: var(--pgeservicos-accent-text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pgeservicos-satisfaction-form {
+  display: grid;
+  gap: 14px;
+}
+
+.pgeservicos-satisfaction-question,
+.pgeservicos-satisfaction-error {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 14px;
+  background: var(--pgeservicos-surface);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.055);
+}
+
+.pgeservicos-satisfaction-question-text h2,
+.pgeservicos-satisfaction-error h2 {
+  margin: 0;
+  color: var(--pgeservicos-heading);
+  font-size: 18px;
+  line-height: 1.28;
+}
+
+.pgeservicos-satisfaction-question-text p,
+.pgeservicos-satisfaction-error p {
+  margin: 6px 0 0;
+  color: var(--pgeservicos-muted);
+  line-height: 1.45;
+}
+
+.pgeservicos-satisfaction-question-field textarea,
+.pgeservicos-satisfaction-question-field input[type='text'] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 11px 12px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 10px;
+  background: var(--pgeservicos-surface);
+  color: var(--pgeservicos-text);
+  outline: none;
+}
+
+.pgeservicos-satisfaction-question-field textarea:focus,
+.pgeservicos-satisfaction-question-field input[type='text']:focus {
+  border-color: var(--pgeservicos-accent-text);
+  box-shadow: 0 0 0 3px rgba(var(--pgeservicos-primary-rgb), 0.16);
+}
+
+.pgeservicos-satisfaction-rating,
+.pgeservicos-satisfaction-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.pgeservicos-satisfaction-rating input,
+.pgeservicos-satisfaction-choice input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.pgeservicos-satisfaction-rating label,
+.pgeservicos-satisfaction-choice label {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 12px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 10px;
+  background: var(--pgeservicos-primary-softer);
+  color: var(--pgeservicos-accent-text);
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.15;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+}
+
+.pgeservicos-satisfaction-rating label span {
+  color: var(--tblr-yellow, #f59f00);
+  letter-spacing: 0;
+}
+
+.pgeservicos-satisfaction-rating input:checked + label,
+.pgeservicos-satisfaction-choice input:checked + label {
+  border-color: var(--pgeservicos-primary);
+  background: var(--pgeservicos-primary);
+  color: var(--pgeservicos-on-primary);
+}
+
+.pgeservicos-satisfaction-rating input:checked + label span {
+  color: var(--pgeservicos-on-primary);
+}
+
+.pgeservicos-satisfaction-rating label:hover,
+.pgeservicos-satisfaction-choice label:hover,
+.pgeservicos-satisfaction-rating input:focus-visible + label,
+.pgeservicos-satisfaction-choice input:focus-visible + label {
+  border-color: var(--pgeservicos-primary);
+  transform: translateY(-1px);
+}
+
+.pgeservicos-satisfaction-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 4px 0 0;
+}
+
+.pgeservicos-satisfaction-actions a,
+.pgeservicos-satisfaction-actions button,
+.pgeservicos-satisfaction-error a {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--pgeservicos-border);
+  border-radius: 10px;
+  background: var(--pgeservicos-surface);
+  color: var(--pgeservicos-accent-text);
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.pgeservicos-satisfaction-actions button {
+  border-color: var(--pgeservicos-primary);
+  background: var(--pgeservicos-primary);
+  color: var(--pgeservicos-on-primary);
+  cursor: pointer;
+}
+
+.pgeservicos-satisfaction-actions button:disabled {
+  cursor: progress;
+  opacity: 0.78;
+}
+
+.pgeservicos-satisfaction-actions a:hover,
+.pgeservicos-satisfaction-actions a:focus,
+.pgeservicos-satisfaction-error a:hover,
+.pgeservicos-satisfaction-error a:focus {
+  background: var(--pgeservicos-primary-soft);
+  color: var(--pgeservicos-accent-text);
+}
+
+.pgeservicos-satisfaction-actions button:hover,
+.pgeservicos-satisfaction-actions button:focus {
+  background: rgba(var(--pgeservicos-primary-rgb), 0.86);
+  color: var(--pgeservicos-on-primary);
+}
+
+.pgeservicos-satisfaction-error {
+  justify-items: center;
+  text-align: center;
+}
+
+.pgeservicos-satisfaction-error i {
+  color: var(--pgeservicos-accent-text);
+  font-size: 42px;
+}
+
+@media (max-width: 760px) {
+  .pgeservicos-satisfaction-ticket-card {
+    grid-template-columns: 1fr;
+  }
+
+  .pgeservicos-satisfaction-actions {
+    justify-content: stretch;
+  }
+
+  .pgeservicos-satisfaction-actions a,
+  .pgeservicos-satisfaction-actions button {
+    flex: 1 1 100%;
+  }
+}

@@ -1,6 +1,6 @@
 <?php
 
-define('PLUGIN_PGESERVICOS_VERSION', '0.0.5');
+define('PLUGIN_PGESERVICOS_VERSION', '0.0.10');
 
 /**
  * Inicialização do plugin.
@@ -9,6 +9,12 @@ function plugin_init_pgeservicos() {
     global $PLUGIN_HOOKS;
 
     $PLUGIN_HOOKS['csrf_compliant']['pgeservicos'] = true;
+
+    require_once(__DIR__ . '/inc/plugin_state.php');
+
+    if (!pgeservicos_is_plugin_active()) {
+        return;
+    }
 
     Plugin::registerClass('PluginPgeservicosPortal');
 
@@ -26,6 +32,7 @@ function plugin_init_pgeservicos() {
     $PLUGIN_HOOKS['add_css']['pgeservicos'][] = 'css/shared/pgeservicos-topbar.css';
     $PLUGIN_HOOKS['add_javascript']['pgeservicos'][] = 'js/formcreator-pge.js';
     $PLUGIN_HOOKS['add_javascript']['pgeservicos'][] = 'js/shared/pgeservicos-topbar.js';
+    $PLUGIN_HOOKS['add_javascript']['pgeservicos'][] = 'js/shared/pgeservicos-sidebar-links.js';
 }
 
 /**

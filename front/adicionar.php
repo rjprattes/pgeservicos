@@ -2,6 +2,9 @@
 
 include('../../../inc/includes.php');
 
+require_once(__DIR__ . '/../inc/plugin_state.php');
+pgeservicos_require_plugin_active();
+
 Session::checkLoginUser();
 
 global $DB, $CFG_GLPI;
@@ -741,7 +744,7 @@ function pgegestor_get_ticket_url($tickets_id) {
     global $CFG_GLPI;
 
     return ($CFG_GLPI['root_doc'] ?? '')
-        . '/plugins/pgeservicos/front/abrir_chamado.php?tickets_id='
+        . '/plugins/pgeservicos/front/chamado.php?tickets_id='
         . (int)$tickets_id;
 }
 
@@ -1883,7 +1886,7 @@ echo "<link rel='stylesheet' href='"
 pgeservicos_theme_print_vars();
 pgeservicos_theme_print_sidebar_sync_script($CFG_GLPI['root_doc'] ?? '', $asset_version);
 
-echo "<div class='pgegestor-page'>";
+echo "<div class='pgegestor-page' style='" . pgeservicos_theme_style_attr() . "'" . pgeservicos_theme_topbar_context_attr() . ">";
 echo "<div class='pgegestor-card'>";
 echo "<div class='pgegestor-form-header'>";
 echo "<div class='pgeservicos-header-actions'>";

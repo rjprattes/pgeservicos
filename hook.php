@@ -1,5 +1,6 @@
 <?php
 
+require_once(__DIR__ . '/inc/plugin_state.php');
 require_once(__DIR__ . '/inc/ticket_view_state.php');
 
 /**
@@ -7,6 +8,10 @@ require_once(__DIR__ . '/inc/ticket_view_state.php');
  */
 function plugin_pgeservicos_redirect_home() {
     global $CFG_GLPI;
+
+    if (!pgeservicos_is_plugin_active()) {
+        return;
+    }
 
     if (isCommandLine()) {
         return;
@@ -28,16 +33,12 @@ function plugin_pgeservicos_redirect_home() {
     }
 
     $route = pgeservicos_get_current_glpi_route();
-    $home_routes = [
-        '/front/central.php',
-        '/front/helpdesk.public.php',
-    ];
 
-    if (!in_array($route, $home_routes, true)) {
+    if (!pgeservicos_is_native_home_route($route)) {
         return;
     }
 
-    if (count($_GET) > 0) {
+    if (pgeservicos_home_request_has_specific_target($_GET)) {
         return;
     }
 
@@ -66,6 +67,64 @@ function pgeservicos_get_current_glpi_route() {
     }
 
     return '/' . ltrim($path, '/');
+}
+
+
+/**
+ * Rotas que representam home/entrada nativa do GLPI ou do catálogo helpdesk.
+ */
+function pgeservicos_is_native_home_route($route) {
+    $home_routes = [
+        '/front/central.php',
+        '/front/helpdesk.public.php',
+        '/front/helpdesk.php',
+        '/front/dashboard_helpdesk.php',
+        '/plugins/formcreator/front/wizard.php',
+        '/plugins/formcreator/front/formlist.php',
+        '/plugins/formcreator/front/issue.php',
+    ];
+
+    return in_array($route, $home_routes, true);
+}
+
+/**
+ * Mantem acesso direto a recursos especificos do GLPI sem sequestrar a navegacao.
+ */
+function pgeservicos_home_request_has_specific_target(array $query) {
+    if (count($query) === 0) {
+        return false;
+    }
+
+    $specific_keys = [
+        'id',
+        'tickets_id',
+        'items_id',
+        'itemtype',
+        'form_id',
+        'forms_id',
+        'reservationitems_id',
+        'create_ticket',
+        'active_entity',
+        'newprofile',
+        'redirect',
+        'forcetab',
+        'glpi_tab',
+        'action',
+        'add',
+        'delete',
+        'update',
+        'criteria',
+        'search',
+        'start',
+    ];
+
+    foreach ($specific_keys as $key) {
+        if (array_key_exists($key, $query)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**

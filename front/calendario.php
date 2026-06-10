@@ -2,6 +2,9 @@
 
 include('../../../inc/includes.php');
 
+require_once(__DIR__ . '/../inc/plugin_state.php');
+pgeservicos_require_plugin_active();
+
 Session::checkLoginUser();
 
 global $DB, $CFG_GLPI;
@@ -378,7 +381,7 @@ $full_calendar_link = $CFG_GLPI['root_doc']
     . '/plugins/pgeservicos/front/calendario.php?'
     . http_build_query(['month' => $current_month->format('Y-m')]);
 
-echo "<div class='pgegestor-page'>";
+echo "<div class='pgegestor-page' style='" . pgeservicos_theme_style_attr() . "'" . pgeservicos_theme_topbar_context_attr() . ">";
 
 echo "<div class='pgegestor-calendar-header'>";
 echo "<div>";

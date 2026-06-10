@@ -2,6 +2,9 @@
 
 include('../../../inc/includes.php');
 
+require_once(__DIR__ . '/../inc/plugin_state.php');
+pgeservicos_require_plugin_active();
+
 Session::checkLoginUser();
 
 global $CFG_GLPI;
@@ -46,7 +49,7 @@ $area_key     = $_GET['area'] ?? '';
 $service_key  = $_GET['servico'] ?? '';
 $category_key = $_GET['categoria'] ?? '';
 
-echo "<div class='pgeservicos-container pgeservicos-servico-page'>";
+echo "<div class='pgeservicos-container pgeservicos-servico-page' style='" . pgeservicos_theme_style_attr() . "'" . pgeservicos_theme_topbar_context_attr() . ">";
 
 $home_url = ($CFG_GLPI['root_doc'] ?? '') . "/plugins/pgeservicos/front/index.php";
 
