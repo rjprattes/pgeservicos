@@ -263,7 +263,32 @@
         return isVisibleFixedTopElement(element, page);
       });
 
-    return customTopbar ? customTopbar.getBoundingClientRect().bottom : 0;
+    if (!customTopbar) {
+      return 0;
+    }
+
+    const customBottom = customTopbar.getBoundingClientRect().bottom;
+
+    if (!customTopbar.classList.contains("pgeservicos-portal-topbar--horizontal")) {
+      return customBottom;
+    }
+
+    const host = customTopbar.closest(".pgeservicos-portal-topbar-native[data-pgeservicos-topbar-layout='horizontal']");
+
+    if (!host || (page && page.contains(host))) {
+      return customBottom;
+    }
+
+    const hostRect = host.getBoundingClientRect();
+    const hostStyle = window.getComputedStyle(host);
+    const visibleHost = hostRect.width > 0
+      && hostRect.height > 0
+      && hostRect.bottom > 0
+      && hostRect.top <= 160
+      && hostStyle.display !== "none"
+      && hostStyle.visibility !== "hidden";
+
+    return visibleHost ? Math.max(customBottom, hostRect.bottom) : customBottom;
   }
 
   function updatePageStickyTop(page) {

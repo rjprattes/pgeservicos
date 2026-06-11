@@ -227,7 +227,7 @@ if (!function_exists('pgeservicos_meus_chamados_active_filters_html')) {
         $chips = [];
         $status = (string)($filters['status'] ?? 'not_solved');
 
-        if ($status !== 'not_solved') {
+        if ($status !== 'all') {
             $status_options = pgeservicos_ticket_status_filter_options();
             $chips[] = [
                 'key' => 'status',
@@ -311,6 +311,7 @@ if (!function_exists('pgeservicos_meus_chamados_filters_html')) {
         $advanced_hidden = $advanced_open ? '' : ' hidden';
         $advanced_expanded = $advanced_open ? 'true' : 'false';
         $active_filters = pgeservicos_meus_chamados_active_filters_html($filters, $entity_options);
+        $clear_url = $page_url . '?status=all';
 
         ob_start();
         echo "
@@ -382,7 +383,7 @@ if (!function_exists('pgeservicos_meus_chamados_filters_html')) {
             <i class='ti ti-adjustments-horizontal' aria-hidden='true'></i>
             <span>Filtros avançados</span>
         </button>
-        <a href='" . pgeservicos_h($page_url) . "' data-pgeservicos-clear-filters>Limpar</a>
+        <a href='" . pgeservicos_h($clear_url) . "' data-pgeservicos-clear-filters>Limpar</a>
     </div>
 
     <div class='pgeservicos-active-filters' data-pgeservicos-active-filters>" . $active_filters . "</div>

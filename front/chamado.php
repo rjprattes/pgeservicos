@@ -261,7 +261,7 @@ echo "
 <header class='pgeservicos-chamado-sticky' aria-label='Resumo fixo do chamado'>
     <div class='pgeservicos-chamado-sticky-links'>
         <a class='pgeservicos-header-back-link' href='" . pgeservicos_ticket_view_h($tickets_url) . "'>&larr; Meus chamados</a>
-        <a class='pgeservicos-header-back-link' href='" . pgeservicos_ticket_view_h($home_url) . "'>&larr; Portal de Serviços</a>
+        <a class='pgeservicos-header-back-link' href='" . pgeservicos_ticket_view_h($home_url) . "'>&larr; Voltar para o Portal de Serviços</a>
     </div>
     <div class='pgeservicos-chamado-sticky-title'>
         <span>#" . (int)$tickets_id . "</span>

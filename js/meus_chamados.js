@@ -429,7 +429,7 @@
         const search = filterForm.querySelector("[data-pgeservicos-search]");
         const perPage = filterForm.querySelector("input[name='per_page']");
 
-        if (status) status.value = "not_solved";
+        if (status) status.value = "all";
         if (entity) entity.value = "";
         if (sort) sort.value = "updated_desc";
         if (search) search.value = "";
@@ -456,7 +456,7 @@
         if (search) search.value = "";
       } else if (filterKey === "status") {
         const status = filterForm.querySelector("select[name='status']");
-        if (status) status.value = "not_solved";
+        if (status) status.value = "all";
       } else if (filterKey === "entidade") {
         const entity = filterForm.querySelector("select[name='entidade']");
         if (entity) entity.value = "";

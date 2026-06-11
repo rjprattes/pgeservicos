@@ -20,6 +20,8 @@
     entityNextSibling: null,
     observer: null,
     bootingTopbar: null,
+    mainBar: null,
+    layoutMode: "",
   };
 
   var contextSelector = [
@@ -34,6 +36,16 @@
     ".pgeservicos-back-link",
     ".pgeservicos-formcreator-back",
   ].join(",");
+
+  var debugEnabled = new URLSearchParams(window.location.search || "").get("pgeservicos_topbar_debug") === "1";
+
+  function debugLog() {
+    if (!debugEnabled || !window.console) {
+      return;
+    }
+
+    window.console.info.apply(window.console, ["[pgeservicos-topbar]"].concat(Array.prototype.slice.call(arguments)));
+  }
 
   function normalizeText(value) {
     return String(value || "")
@@ -111,42 +123,355 @@
     return null;
   }
 
-  function isVerticalLayout() {
-    if (document.body && document.body.classList.contains("horizontal-layout")) {
+  function uniqueElements(selectors) {
+    var seen = [];
+    var elements = [];
+
+    selectors.forEach(function (selector) {
+      Array.prototype.slice.call(document.querySelectorAll(selector)).forEach(function (element) {
+        if (seen.indexOf(element) === -1) {
+          seen.push(element);
+          elements.push(element);
+        }
+      });
+    });
+
+    return elements;
+  }
+
+  function hasSearchControl(element) {
+    if (!element) {
       return false;
     }
 
+    if (element.querySelector("form[role='search'], .global-search, .search-form, [class*='global-search']")) {
+      return true;
+    }
+
+    return Array.prototype.slice.call(element.querySelectorAll("input, button, [aria-label], [title]")).some(function (candidate) {
+      var label = normalizeComparable(candidate.getAttribute("placeholder") || candidate.getAttribute("aria-label") || candidate.getAttribute("title") || candidate.textContent);
+
+      return label.indexOf("pesquisar") !== -1 || label.indexOf("search") !== -1;
+    });
+  }
+
+  function hasBreadcrumbContent(element) {
+    if (!element) {
+      return false;
+    }
+
+    if (element.querySelector(".breadcrumb, nav[aria-label='breadcrumb']")) {
+      return true;
+    }
+
+    var text = normalizeComparable(element.textContent);
+
+    return text.indexOf("home") !== -1 && (
+      text.indexOf("pge servicos") !== -1
+      || text.indexOf("ferramentas") !== -1
+      || text.indexOf("portal") !== -1
+    );
+  }
+
+  function menuWordScore(element) {
+    var text = normalizeComparable(element ? element.textContent : "");
+    var words = ["ativos", "assistencia", "gerencia", "ferramentas", "plug-ins", "plugins", "administracao", "configurar"];
+
+    return words.reduce(function (score, word) {
+      return score + (text.indexOf(word) !== -1 ? 1 : 0);
+    }, 0);
+  }
+
+  function navbarCandidates() {
+    return uniqueElements([
+      ".page > header.navbar",
+      ".page > .navbar",
+      ".page-wrapper > header.navbar",
+      ".page-wrapper > .navbar",
+      "header.navbar.d-print-none",
+      ".navbar.d-print-none",
+      "header.navbar",
+      ".layout-navbar",
+      ".page-header",
+    ]).filter(function (element) {
+      return isVisibleElement(element)
+        && !element.classList.contains("navbar-vertical")
+        && !element.closest("aside.sidebar")
+        && !element.closest(".pgeservicos-portal-topbar");
+    });
+  }
+
+  function findHorizontalMainBar() {
+    var scored = navbarCandidates().map(function (element) {
+      var rect = element.getBoundingClientRect();
+      var score = 0;
+
+      if (element.classList.contains("navbar-dark") || element.classList.contains("navbar-horizontal")) {
+        score += 80;
+      }
+
+      score += menuWordScore(element) * 18;
+
+      if (rect.top <= 90) {
+        score += 20;
+      }
+
+      if (hasBreadcrumbContent(element)) {
+        score -= 60;
+      }
+
+      if (hasSearchControl(element)) {
+        score -= 20;
+      }
+
+      return { element: element, score: score };
+    }).sort(function (first, second) {
+      return second.score - first.score;
+    });
+
+    return scored.length && scored[0].score >= 45 ? scored[0].element : null;
+  }
+
+  function findHorizontalSecondaryBar() {
+    var mainBar = findHorizontalMainBar();
+    var mainBottom = mainBar ? mainBar.getBoundingClientRect().bottom : 0;
+    var scored = navbarCandidates().map(function (element) {
+      var rect = element.getBoundingClientRect();
+      var hasBreadcrumb = hasBreadcrumbContent(element);
+      var hasSearch = hasSearchControl(element);
+      var score = 0;
+
+      if (element === mainBar) {
+        score -= 200;
+      }
+
+      if (hasBreadcrumb) {
+        score += 95;
+      }
+
+      if (hasSearch) {
+        score += 55;
+      }
+
+      if (mainBar) {
+        var distanceFromMain = rect.top - mainBottom;
+
+        if (distanceFromMain >= -4 && distanceFromMain <= 16) {
+          score += 44;
+        } else if (distanceFromMain > 48 || distanceFromMain < -4) {
+          score -= 120;
+        }
+      } else if (rect.top >= mainBottom - 4) {
+        score += 20;
+      }
+
+      if (element.matches(".page > header.navbar, .page > .navbar, .page-wrapper > header.navbar, .page-wrapper > .navbar")) {
+        score += 16;
+      }
+
+      if (element.classList.contains("navbar-dark") || element.classList.contains("navbar-horizontal")) {
+        score -= 120;
+      }
+
+      score -= menuWordScore(element) * 14;
+
+      return {
+        element: element,
+        score: score,
+        hasBreadcrumb: hasBreadcrumb,
+        hasSearch: hasSearch,
+        rect: rect,
+      };
+    }).filter(function (candidate) {
+      return candidate.score >= 85 && (candidate.hasBreadcrumb || candidate.hasSearch);
+    }).sort(function (first, second) {
+      return second.score - first.score;
+    });
+
+    if (debugEnabled) {
+      debugLog("horizontal main bar", mainBar);
+      debugLog("horizontal secondary candidates", scored.map(function (candidate) {
+        return {
+          score: candidate.score,
+          classes: candidate.element.className,
+          rect: {
+            top: Math.round(candidate.rect.top),
+            bottom: Math.round(candidate.rect.bottom),
+            width: Math.round(candidate.rect.width),
+            height: Math.round(candidate.rect.height),
+          },
+          hasBreadcrumb: candidate.hasBreadcrumb,
+          hasSearch: candidate.hasSearch,
+        };
+      }));
+    }
+
+    return scored.length ? scored[0].element : null;
+  }
+
+  function hasVisibleHorizontalNavbar() {
+    return Array.prototype.slice.call(document.querySelectorAll(".navbar-horizontal")).some(isVisibleElement);
+  }
+
+  function isHorizontalLayout() {
+    if (document.body && document.body.classList.contains("vertical-layout")) {
+      return false;
+    }
+
+    if (document.body && document.body.classList.contains("horizontal-layout")) {
+      return true;
+    }
+
+    if (findVerticalSidebar() && !hasVisibleHorizontalNavbar()) {
+      return false;
+    }
+
+    if (findHorizontalSecondaryBar()) {
+      return true;
+    }
+
+    return Boolean(findHorizontalMainBar()) && !findVerticalSidebar();
+  }
+
+  function isVerticalLayout() {
     if (document.body && document.body.classList.contains("vertical-layout")) {
       return Boolean(findVerticalSidebar());
     }
 
-    return Boolean(findVerticalSidebar());
+    if (document.body && document.body.classList.contains("horizontal-layout")) {
+      return false;
+    }
+
+    return Boolean(findVerticalSidebar()) && !findHorizontalMainBar();
+  }
+
+  function findVerticalTopbar() {
+    var scored = navbarCandidates().map(function (element) {
+      var score = 0;
+
+      if (element.matches(".page > header.navbar")) {
+        score += 100;
+      }
+
+      if (hasBreadcrumbContent(element) || hasSearchControl(element)) {
+        score += 30;
+      }
+
+      if (element.classList.contains("navbar-dark") || element.classList.contains("navbar-horizontal")) {
+        score -= 120;
+      }
+
+      return { element: element, score: score };
+    }).sort(function (first, second) {
+      return second.score - first.score;
+    });
+
+    return scored.length ? scored[0].element : null;
+  }
+
+  function findTopbarTarget() {
+    if (isHorizontalLayout()) {
+      var horizontalBar = findHorizontalSecondaryBar();
+
+      if (horizontalBar) {
+        debugLog("target topbar", "horizontal", horizontalBar);
+        return { topbar: horizontalBar, layoutMode: "horizontal" };
+      }
+
+      debugLog("target topbar", "none: horizontal layout without secondary bar");
+      return { topbar: null, layoutMode: "" };
+    }
+
+    var verticalBar = findVerticalTopbar();
+
+    if (verticalBar) {
+      debugLog("target topbar", "vertical", verticalBar);
+      return { topbar: verticalBar, layoutMode: "vertical" };
+    }
+
+    debugLog("target topbar", "none");
+    return { topbar: null, layoutMode: "" };
   }
 
   function findTopbar() {
-    var candidates = Array.prototype.slice.call(
-      document.querySelectorAll(".page > header.navbar, header.navbar.d-print-none, header.navbar"),
-    );
-
-    return candidates.find(function (element) {
-      return isVisibleElement(element)
-        && !element.classList.contains("topbar")
-        && !element.classList.contains("navbar-vertical")
-        && !element.closest("aside.sidebar");
-    }) || null;
+    return findTopbarTarget().topbar;
   }
 
   function findNativeContainer(topbar) {
-    return topbar ? topbar.querySelector(":scope > .container-fluid") : null;
+    return topbar ? (topbar.querySelector(":scope > .container-fluid") || topbar) : null;
   }
 
-  function markTopbarBooting(topbar) {
+  function elementMetrics(element) {
+    if (!element) {
+      return null;
+    }
+
+    var rect = element.getBoundingClientRect();
+
+    return {
+      tag: element.tagName ? element.tagName.toLowerCase() : "",
+      classes: element.className || "",
+      top: Math.round(rect.top),
+      bottom: Math.round(rect.bottom),
+      width: Math.round(rect.width),
+      height: Math.round(rect.height),
+    };
+  }
+
+  function topbarMetrics(topbar, container, customBar) {
+    return {
+      host: elementMetrics(topbar),
+      container: elementMetrics(container),
+      custom: elementMetrics(customBar),
+    };
+  }
+
+  function clearHorizontalMainBar() {
+    if (!state.mainBar) {
+      return;
+    }
+
+    state.mainBar.classList.remove("pgeservicos-portal-mainbar-native");
+    if (state.mainBar.dataset.pgeservicosTopbarMain === "horizontal") {
+      delete state.mainBar.dataset.pgeservicosTopbarMain;
+    }
+    state.mainBar = null;
+  }
+
+  function styleHorizontalMainBar(mainBar) {
+    if (!mainBar) {
+      clearHorizontalMainBar();
+      return;
+    }
+
+    if (state.mainBar && state.mainBar !== mainBar) {
+      clearHorizontalMainBar();
+    }
+
+    mainBar.classList.add("pgeservicos-portal-mainbar-native");
+    mainBar.dataset.pgeservicosTopbarMain = "horizontal";
+    state.mainBar = mainBar;
+    debugLog("horizontal main bar prepared", elementMetrics(mainBar));
+  }
+
+  function findLayoutUserMenu(layoutMode, container, mainBar) {
+    if (layoutMode === "horizontal") {
+      return findUserMenu(mainBar) || findUserMenu(container);
+    }
+
+    return findUserMenu(container);
+  }
+
+  function markTopbarBooting(topbar, layoutMode) {
     if (!topbar || state.active) {
       return;
     }
 
     if (topbar.dataset.pgeservicosTopbar !== "active") {
       topbar.dataset.pgeservicosTopbar = "booting";
+      if (layoutMode) {
+        topbar.dataset.pgeservicosTopbarLayout = layoutMode;
+      }
       state.bootingTopbar = topbar;
     }
   }
@@ -156,6 +481,7 @@
 
     if (target && target.dataset.pgeservicosTopbar === "booting") {
       delete target.dataset.pgeservicosTopbar;
+      delete target.dataset.pgeservicosTopbarLayout;
     }
 
     if (!topbar || state.bootingTopbar === topbar) {
@@ -496,7 +822,7 @@
     entity.remove();
   }
 
-  function createCustomBar() {
+  function createCustomBar(layoutMode) {
     var customBar = document.createElement("div");
     var left = document.createElement("div");
     var links = document.createElement("div");
@@ -504,7 +830,8 @@
     var profileSlot = document.createElement("div");
     var userSlot = document.createElement("div");
 
-    customBar.className = "pgeservicos-portal-topbar";
+    customBar.className = "pgeservicos-portal-topbar pgeservicos-portal-topbar--" + layoutMode;
+    customBar.dataset.pgeservicosTopbarMode = layoutMode;
     customBar.setAttribute("role", "region");
     customBar.setAttribute("aria-label", "Navegação da Procuradoria-Geral do Estado");
 
@@ -528,13 +855,49 @@
     };
   }
 
+  function notifyLayoutChanged() {
+    if (typeof window.pgeservicosUpdateFloatingLayout !== "function") {
+      return;
+    }
+
+    window.pgeservicosUpdateFloatingLayout();
+
+    if (state.layoutMode !== "horizontal") {
+      return;
+    }
+
+    window.requestAnimationFrame(function () {
+      window.pgeservicosUpdateFloatingLayout();
+      window.requestAnimationFrame(function () {
+        window.pgeservicosUpdateFloatingLayout();
+      });
+    });
+  }
+
   function activate() {
-    var topbar = findTopbar();
+    var target = findTopbarTarget();
+    var topbar = target.topbar;
+    var layoutMode = target.layoutMode;
     var container = findNativeContainer(topbar);
-    var userMenu = findUserMenu(container);
+    var mainBar = layoutMode === "horizontal" ? findHorizontalMainBar() : null;
+    var userMenu = findLayoutUserMenu(layoutMode, container, mainBar);
+
+    debugLog("activate", {
+      context: isPgeservicosContext(),
+      layoutMode: layoutMode,
+      topbar: topbar,
+      container: container,
+      mainBar: mainBar,
+      hasUserMenu: Boolean(userMenu || state.userMenu),
+      hasProfileSelector: Boolean((userMenu || state.userMenu) && findProfileSelector(userMenu || state.userMenu)),
+      hasEntitySelector: Boolean((userMenu || state.userMenu) && findEntitySelector(userMenu || state.userMenu)),
+      activeProfileName: (userMenu || state.userMenu) ? getActiveProfileName(userMenu || state.userMenu) : "",
+      active: state.active,
+      metricsBefore: topbarMetrics(topbar, container, null),
+    });
 
     if (state.active) {
-      if (!state.customBar || !document.documentElement.contains(state.customBar) || state.topbar !== topbar || state.container !== container) {
+      if (!state.customBar || !document.documentElement.contains(state.customBar) || state.topbar !== topbar || state.container !== container || state.layoutMode !== layoutMode) {
         deactivate();
         activate();
         return;
@@ -542,35 +905,49 @@
 
       syncBackButtonTheme(state.customBar);
       enforceUserAvatarOnly(state.userMenu);
+      styleHorizontalMainBar(layoutMode === "horizontal" ? mainBar : null);
       hideNativeElements(state.container, state.customBar);
       buildBackLinks(state.customBar.querySelector(".pgeservicos-portal-topbar__links"));
+      debugLog("topbar host refreshed", topbarMetrics(state.topbar, state.container, state.customBar));
+      notifyLayoutChanged();
       return;
     }
 
-    if (!topbar || !container || !userMenu) {
+    if (!topbar || !container || !layoutMode) {
+      debugLog("activate aborted", "missing target");
       return;
     }
 
-    var profileName = getActiveProfileName(userMenu);
-    var profile = removeProfileFromUserMenu(userMenu);
-    var custom = createCustomBar();
+    if (!userMenu) {
+      debugLog("activate aborted", layoutMode + " user menu not found");
+      return;
+    }
 
-    storeOriginalPosition("userMenu", userMenu);
+    var profileName = userMenu ? getActiveProfileName(userMenu) : "";
+    var profile = userMenu ? removeProfileFromUserMenu(userMenu) : null;
+    var custom = createCustomBar(layoutMode);
+
     state.topbar = topbar;
     state.container = container;
-    state.userMenu = userMenu;
     state.customBar = custom.root;
+    state.layoutMode = layoutMode;
 
-    maybeHideEntityForUserProfile(userMenu, profileName);
+    styleHorizontalMainBar(layoutMode === "horizontal" ? mainBar : null);
 
-    if (profile) {
-      profile.classList.add("pgeservicos-portal-profile-selector");
-      moveElement(profile, custom.profileSlot);
+    if (userMenu) {
+      storeOriginalPosition("userMenu", userMenu);
+      state.userMenu = userMenu;
+      maybeHideEntityForUserProfile(userMenu, profileName);
+
+      if (profile) {
+        profile.classList.add("pgeservicos-portal-profile-selector");
+        moveElement(profile, custom.profileSlot);
+      }
+
+      userMenu.classList.add("pgeservicos-portal-user-menu");
+      enforceUserAvatarOnly(userMenu);
+      moveElement(userMenu, custom.userSlot);
     }
-
-    userMenu.classList.add("pgeservicos-portal-user-menu");
-    enforceUserAvatarOnly(userMenu);
-    moveElement(userMenu, custom.userSlot);
 
     syncBackButtonTheme(custom.root);
     buildBackLinks(custom.links);
@@ -580,7 +957,11 @@
     clearTopbarBooting(topbar);
     topbar.classList.add("pgeservicos-portal-topbar-native");
     topbar.dataset.pgeservicosTopbar = "active";
+    topbar.dataset.pgeservicosTopbarLayout = layoutMode;
     state.active = true;
+    debugLog("custom topbar attached", custom.root);
+    debugLog("topbar host after attach", topbarMetrics(topbar, container, custom.root));
+    notifyLayoutChanged();
   }
 
   function deactivate() {
@@ -611,9 +992,12 @@
       state.customBar.remove();
     }
 
+    clearHorizontalMainBar();
+
     if (state.topbar) {
       state.topbar.classList.remove("pgeservicos-portal-topbar-native");
       delete state.topbar.dataset.pgeservicosTopbar;
+      delete state.topbar.dataset.pgeservicosTopbarLayout;
     }
 
     clearTopbarBooting();
@@ -622,15 +1006,44 @@
     state.topbar = null;
     state.container = null;
     state.customBar = null;
+    state.layoutMode = "";
+    notifyLayoutChanged();
   }
 
   function shouldActivate() {
-    return isPgeservicosContext() && isVerticalLayout() && Boolean(findTopbar());
+    var target = findTopbarTarget();
+
+    if (!isPgeservicosContext() || !target.topbar) {
+      debugLog("shouldActivate", false, "missing context or target");
+      return false;
+    }
+
+    if (state.active) {
+      debugLog("shouldActivate", true, target.layoutMode);
+      return true;
+    }
+
+    var container = findNativeContainer(target.topbar);
+    var mainBar = target.layoutMode === "horizontal" ? findHorizontalMainBar() : null;
+    var userMenu = findLayoutUserMenu(target.layoutMode, container, mainBar);
+    var hasUserMenu = Boolean(userMenu);
+
+    debugLog("shouldActivate", hasUserMenu, {
+      layoutMode: target.layoutMode,
+      hasUserMenu: hasUserMenu,
+      hasProfileSelector: Boolean(userMenu && findProfileSelector(userMenu)),
+      hasEntitySelector: Boolean(userMenu && findEntitySelector(userMenu)),
+      activeProfileName: userMenu ? getActiveProfileName(userMenu) : "",
+    });
+
+    return hasUserMenu;
   }
 
   function refresh() {
+    var target = findTopbarTarget();
+
     if (shouldActivate()) {
-      markTopbarBooting(findTopbar());
+      markTopbarBooting(target.topbar, target.layoutMode);
       activate();
     } else {
       clearTopbarBooting();
@@ -639,8 +1052,15 @@
   }
 
   function scheduleRefresh() {
-    window.clearTimeout(scheduleRefresh.timer);
-    scheduleRefresh.timer = window.setTimeout(refresh, 80);
+    if (scheduleRefresh.scheduled) {
+      return;
+    }
+
+    scheduleRefresh.scheduled = true;
+    window.requestAnimationFrame(function () {
+      scheduleRefresh.scheduled = false;
+      refresh();
+    });
   }
 
   function startObserver() {
@@ -661,8 +1081,8 @@
     refresh();
     startObserver();
     window.addEventListener("resize", scheduleRefresh);
-    window.setTimeout(refresh, 250);
-    window.setTimeout(refresh, 900);
+    window.addEventListener("load", scheduleRefresh);
+    window.requestAnimationFrame(scheduleRefresh);
   }
 
   if (document.readyState === "loading") {

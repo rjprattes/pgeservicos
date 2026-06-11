@@ -1,9 +1,16 @@
+[data-pgeservicos-custom-topbar="1"] .pgeservicos-header-actions,
+[data-pgeservicos-custom-topbar="1"] .pgeservicos-chamado-sticky-links,
+.pgeservicos-formcreator-page .pgeservicos-formcreator-back {
+  display: none !important;
+}
+
 @supports selector(body:has([data-pgeservicos-custom-topbar="1"])) {
   body.vertical-layout:has([data-pgeservicos-custom-topbar="1"])
     .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)),
   body:not(.horizontal-layout):has(aside.navbar-vertical):has([data-pgeservicos-custom-topbar="1"])
     .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)),
-  .page > header.navbar[data-pgeservicos-topbar="booting"]:not(:has(.pgeservicos-portal-topbar)) {
+  .page > header.navbar[data-pgeservicos-topbar="booting"]:not([data-pgeservicos-topbar-layout="horizontal"]):not(:has(.pgeservicos-portal-topbar)),
+  .page-wrapper > header.navbar[data-pgeservicos-topbar="booting"]:not([data-pgeservicos-topbar-layout="horizontal"]):not(:has(.pgeservicos-portal-topbar)) {
     min-height: 64px;
     background: #ffffff;
   }
@@ -12,7 +19,8 @@
     .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)) > .container-fluid,
   body:not(.horizontal-layout):has(aside.navbar-vertical):has([data-pgeservicos-custom-topbar="1"])
     .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)) > .container-fluid,
-  .page > header.navbar[data-pgeservicos-topbar="booting"]:not(:has(.pgeservicos-portal-topbar)) > .container-fluid {
+  .page > header.navbar[data-pgeservicos-topbar="booting"]:not([data-pgeservicos-topbar-layout="horizontal"]):not(:has(.pgeservicos-portal-topbar)) > .container-fluid,
+  .page-wrapper > header.navbar[data-pgeservicos-topbar="booting"]:not([data-pgeservicos-topbar-layout="horizontal"]):not(:has(.pgeservicos-portal-topbar)) > .container-fluid {
     position: relative;
     min-height: 64px;
   }
@@ -21,7 +29,8 @@
     .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)) > .container-fluid > *,
   body:not(.horizontal-layout):has(aside.navbar-vertical):has([data-pgeservicos-custom-topbar="1"])
     .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)) > .container-fluid > *,
-  .page > header.navbar[data-pgeservicos-topbar="booting"]:not(:has(.pgeservicos-portal-topbar)) > .container-fluid > * {
+  .page > header.navbar[data-pgeservicos-topbar="booting"]:not([data-pgeservicos-topbar-layout="horizontal"]):not(:has(.pgeservicos-portal-topbar)) > .container-fluid > *,
+  .page-wrapper > header.navbar[data-pgeservicos-topbar="booting"]:not([data-pgeservicos-topbar-layout="horizontal"]):not(:has(.pgeservicos-portal-topbar)) > .container-fluid > * {
     visibility: hidden;
   }
 
@@ -29,7 +38,8 @@
     .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)) > .container-fluid::before,
   body:not(.horizontal-layout):has(aside.navbar-vertical):has([data-pgeservicos-custom-topbar="1"])
     .page > header.navbar:not(.navbar-vertical):not(:has(.pgeservicos-portal-topbar)) > .container-fluid::before,
-  .page > header.navbar[data-pgeservicos-topbar="booting"]:not(:has(.pgeservicos-portal-topbar)) > .container-fluid::before {
+  .page > header.navbar[data-pgeservicos-topbar="booting"]:not([data-pgeservicos-topbar-layout="horizontal"]):not(:has(.pgeservicos-portal-topbar)) > .container-fluid::before,
+  .page-wrapper > header.navbar[data-pgeservicos-topbar="booting"]:not([data-pgeservicos-topbar-layout="horizontal"]):not(:has(.pgeservicos-portal-topbar)) > .container-fluid::before {
     content: "Procuradoria-Geral do Estado";
     position: absolute;
     top: 50%;
@@ -46,7 +56,91 @@
     transform: translateY(-50%);
     visibility: visible;
   }
+
+  body.horizontal-layout:has([data-pgeservicos-custom-topbar="1"])
+    .page > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)),
+  body.horizontal-layout:has([data-pgeservicos-custom-topbar="1"])
+    .page-wrapper > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)),
+  body:not(.vertical-layout):has(.navbar-horizontal):has([data-pgeservicos-custom-topbar="1"])
+    .page > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)),
+  body:not(.vertical-layout):has(.navbar-horizontal):has([data-pgeservicos-custom-topbar="1"])
+    .page-wrapper > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)),
+  .page > :is(header.navbar, .navbar)[data-pgeservicos-topbar="booting"][data-pgeservicos-topbar-layout="horizontal"]:not(:has(.pgeservicos-portal-topbar)),
+  .page-wrapper > :is(header.navbar, .navbar)[data-pgeservicos-topbar="booting"][data-pgeservicos-topbar-layout="horizontal"]:not(:has(.pgeservicos-portal-topbar)) {
+    background: #ffffff;
+  }
+
+  body.horizontal-layout:has([data-pgeservicos-custom-topbar="1"])
+    .page > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)) > .container-fluid,
+  body.horizontal-layout:has([data-pgeservicos-custom-topbar="1"])
+    .page-wrapper > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)) > .container-fluid,
+  body:not(.vertical-layout):has(.navbar-horizontal):has([data-pgeservicos-custom-topbar="1"])
+    .page > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)) > .container-fluid,
+  body:not(.vertical-layout):has(.navbar-horizontal):has([data-pgeservicos-custom-topbar="1"])
+    .page-wrapper > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)) > .container-fluid,
+  .page > :is(header.navbar, .navbar)[data-pgeservicos-topbar="booting"][data-pgeservicos-topbar-layout="horizontal"]:not(:has(.pgeservicos-portal-topbar)) > .container-fluid,
+  .page-wrapper > :is(header.navbar, .navbar)[data-pgeservicos-topbar="booting"][data-pgeservicos-topbar-layout="horizontal"]:not(:has(.pgeservicos-portal-topbar)) > .container-fluid {
+    position: relative;
+    min-height: 56px;
+  }
+
+  body.horizontal-layout:has([data-pgeservicos-custom-topbar="1"])
+    .page > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)) > .container-fluid > *,
+  body.horizontal-layout:has([data-pgeservicos-custom-topbar="1"])
+    .page-wrapper > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)) > .container-fluid > *,
+  body:not(.vertical-layout):has(.navbar-horizontal):has([data-pgeservicos-custom-topbar="1"])
+    .page > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)) > .container-fluid > *,
+  body:not(.vertical-layout):has(.navbar-horizontal):has([data-pgeservicos-custom-topbar="1"])
+    .page-wrapper > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)) > .container-fluid > *,
+  .page > :is(header.navbar, .navbar)[data-pgeservicos-topbar="booting"][data-pgeservicos-topbar-layout="horizontal"]:not(:has(.pgeservicos-portal-topbar)) > .container-fluid > *,
+  .page-wrapper > :is(header.navbar, .navbar)[data-pgeservicos-topbar="booting"][data-pgeservicos-topbar-layout="horizontal"]:not(:has(.pgeservicos-portal-topbar)) > .container-fluid > * {
+    visibility: hidden;
+  }
+
+  body.horizontal-layout:has([data-pgeservicos-custom-topbar="1"])
+    .page > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)) > .container-fluid::before,
+  body.horizontal-layout:has([data-pgeservicos-custom-topbar="1"])
+    .page-wrapper > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)) > .container-fluid::before,
+  body:not(.vertical-layout):has(.navbar-horizontal):has([data-pgeservicos-custom-topbar="1"])
+    .page > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)) > .container-fluid::before,
+  body:not(.vertical-layout):has(.navbar-horizontal):has([data-pgeservicos-custom-topbar="1"])
+    .page-wrapper > :is(header.navbar, .navbar):not(.navbar-vertical):not(.navbar-dark):not(.navbar-horizontal):not(:has(.pgeservicos-portal-topbar)):has(:is(.breadcrumb, nav[aria-label='breadcrumb'], form[role='search'], .global-search, .search-form)) > .container-fluid::before,
+  .page > :is(header.navbar, .navbar)[data-pgeservicos-topbar="booting"][data-pgeservicos-topbar-layout="horizontal"]:not(:has(.pgeservicos-portal-topbar)) > .container-fluid::before,
+  .page-wrapper > :is(header.navbar, .navbar)[data-pgeservicos-topbar="booting"][data-pgeservicos-topbar-layout="horizontal"]:not(:has(.pgeservicos-portal-topbar)) > .container-fluid::before {
+    content: "Procuradoria-Geral do Estado";
+    position: absolute;
+    top: 50%;
+    left: 16px;
+    z-index: 1;
+    max-width: min(420px, calc(100% - 32px));
+    overflow: hidden;
+    color: var(--tblr-muted, #667382);
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transform: translateY(-50%);
+    visibility: visible;
+  }
+
+  body.horizontal-layout:has([data-pgeservicos-custom-topbar="1"])
+    .page > :is(header.navbar, .navbar):not(.navbar-vertical):is(.navbar-dark, .navbar-horizontal):not(:has(.pgeservicos-portal-topbar))
+    :is(.user-menu, .nav-item:has(.user-menu-dropdown-toggle), .nav-item:has(.dropdown-toggle .avatar), .dropdown:has(.dropdown-toggle .avatar), .user-menu-dropdown-toggle, .dropdown-toggle:has(.avatar)),
+  body.horizontal-layout:has([data-pgeservicos-custom-topbar="1"])
+    .page-wrapper > :is(header.navbar, .navbar):not(.navbar-vertical):is(.navbar-dark, .navbar-horizontal):not(:has(.pgeservicos-portal-topbar))
+    :is(.user-menu, .nav-item:has(.user-menu-dropdown-toggle), .nav-item:has(.dropdown-toggle .avatar), .dropdown:has(.dropdown-toggle .avatar), .user-menu-dropdown-toggle, .dropdown-toggle:has(.avatar)),
+  body:not(.vertical-layout):has(.navbar-horizontal):has([data-pgeservicos-custom-topbar="1"])
+    .page > :is(header.navbar, .navbar):not(.navbar-vertical):is(.navbar-dark, .navbar-horizontal):not(:has(.pgeservicos-portal-topbar))
+    :is(.user-menu, .nav-item:has(.user-menu-dropdown-toggle), .nav-item:has(.dropdown-toggle .avatar), .dropdown:has(.dropdown-toggle .avatar), .user-menu-dropdown-toggle, .dropdown-toggle:has(.avatar)),
+  body:not(.vertical-layout):has(.navbar-horizontal):has([data-pgeservicos-custom-topbar="1"])
+    .page-wrapper > :is(header.navbar, .navbar):not(.navbar-vertical):is(.navbar-dark, .navbar-horizontal):not(:has(.pgeservicos-portal-topbar))
+    :is(.user-menu, .nav-item:has(.user-menu-dropdown-toggle), .nav-item:has(.dropdown-toggle .avatar), .dropdown:has(.dropdown-toggle .avatar), .user-menu-dropdown-toggle, .dropdown-toggle:has(.avatar)) {
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
 }
+
 
 .pgeservicos-portal-topbar {
   display: flex;
@@ -61,6 +155,27 @@
   color: var(--tblr-body-color, #1f2937);
   box-sizing: border-box;
 }
+
+.pgeservicos-portal-topbar--horizontal {
+  position: relative;
+  z-index: 1042;
+  align-self: stretch;
+  gap: 10px;
+  min-height: 56px;
+  padding: 6px 16px;
+  border-bottom: 0;
+  overflow: visible;
+}
+
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__placeholder {
+  max-width: min(460px, 48vw);
+}
+
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__profile:empty,
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__user:empty {
+  display: none;
+}
+
 
 .pgeservicos-portal-topbar,
 .pgeservicos-portal-topbar *,
@@ -86,12 +201,30 @@
   justify-content: flex-end;
 }
 
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__left,
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__right,
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__profile,
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__user {
+  overflow: visible;
+}
+
 .pgeservicos-portal-topbar__links {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
   min-width: 0;
+}
+
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__links {
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__links::-webkit-scrollbar {
+  display: none;
 }
 
 .pgeservicos-portal-topbar__placeholder {
@@ -143,6 +276,50 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__link {
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 5px 10px;
+  font-size: 0.8125rem;
+}
+
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__right {
+  gap: 6px;
+}
+
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__profile .dropdown-toggle,
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__user .user-menu-dropdown-toggle {
+  min-height: 40px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__profile .dropdown-toggle {
+  min-width: 104px;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__user .user-menu-dropdown-toggle {
+  min-width: 42px;
+  width: 42px;
+  height: 42px;
+  padding: 3px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__user .avatar,
+.pgeservicos-portal-topbar--horizontal .pgeservicos-portal-topbar__user img {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  object-fit: cover;
 }
 
 .pgeservicos-portal-topbar .pgeservicos-portal-topbar__profile .dropdown-toggle:hover,
@@ -216,6 +393,7 @@
 }
 
 .pgeservicos-portal-topbar .dropdown-menu {
+  z-index: 1065;
   color: var(--tblr-body-color, #1f2937);
 }
 
@@ -227,8 +405,31 @@
   background: #ffffff;
 }
 
-.pgeservicos-portal-topbar-native > .container-fluid {
+.pgeservicos-portal-topbar-native:not([data-pgeservicos-topbar-layout="horizontal"]) > .container-fluid {
   min-height: 64px;
+}
+
+.pgeservicos-portal-topbar-native[data-pgeservicos-topbar-layout="horizontal"] {
+  overflow: visible;
+  background: #ffffff;
+}
+
+.pgeservicos-portal-topbar-native[data-pgeservicos-topbar-layout="horizontal"] > .container-fluid {
+  display: flex;
+  align-items: stretch;
+  min-height: 56px;
+  padding-top: 0;
+  padding-bottom: 0;
+  overflow: visible;
+}
+
+.pgeservicos-portal-mainbar-native[data-pgeservicos-topbar-main="horizontal"] .user-menu,
+.pgeservicos-portal-mainbar-native[data-pgeservicos-topbar-main="horizontal"] .nav-item:has(.user-menu-dropdown-toggle),
+.pgeservicos-portal-mainbar-native[data-pgeservicos-topbar-main="horizontal"] .nav-item:has(.dropdown-toggle .avatar),
+.pgeservicos-portal-mainbar-native[data-pgeservicos-topbar-main="horizontal"] .dropdown:has(.dropdown-toggle .avatar),
+.pgeservicos-portal-mainbar-native[data-pgeservicos-topbar-main="horizontal"] .user-menu-dropdown-toggle,
+.pgeservicos-portal-mainbar-native[data-pgeservicos-topbar-main="horizontal"] .dropdown-toggle:has(.avatar) {
+  display: none !important;
 }
 
 @media (max-width: 900px) {

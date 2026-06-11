@@ -1745,6 +1745,25 @@
 
     if (customTopbar) {
       top = customTopbar.getBoundingClientRect().bottom;
+
+      if (customTopbar.classList.contains("pgeservicos-portal-topbar--horizontal")) {
+        const host = customTopbar.closest(".pgeservicos-portal-topbar-native[data-pgeservicos-topbar-layout='horizontal']");
+
+        if (host && (!page || !page.contains(host))) {
+          const hostRect = host.getBoundingClientRect();
+          const hostStyle = window.getComputedStyle(host);
+          const visibleHost = hostRect.width > 0
+            && hostRect.height > 0
+            && hostRect.bottom > 0
+            && hostRect.top <= 160
+            && hostStyle.display !== "none"
+            && hostStyle.visibility !== "hidden";
+
+          if (visibleHost) {
+            top = Math.max(top, hostRect.bottom);
+          }
+        }
+      }
     }
 
     selectors.forEach(function (selector) {
